@@ -234,7 +234,7 @@ ul, ol        { list-style: none; }
 }
 
 .dt-logo-img {
-    height: 44px;
+    height: 100px;
     width: auto;
     max-width: 140px;
     object-fit: contain;
@@ -257,7 +257,7 @@ ul, ol        { list-style: none; }
 }
 .dt-logo-tagline {
     font-family: var(--font-body);
-    font-size: 8px;
+    font-size: 9px;
     font-weight: 700;
     letter-spacing: .24em;
     text-transform: uppercase;
@@ -883,7 +883,7 @@ ul, ol        { list-style: none; }
 }
 
 .dt-footer-logo-img {
-    height: 36px;
+    height: 44px;
     width: auto;
     max-width: 120px;
     object-fit: contain;

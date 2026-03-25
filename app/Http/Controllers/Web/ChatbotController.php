@@ -25,7 +25,7 @@ class ChatbotController extends Controller
             'messages.*.content' => ['required', 'string', 'max:1000'],
         ]);
 
-        $apiKey = config('services.groq.api_key');
+        $apiKey = config('services.groq.key');
 
         if (!$apiKey) {
             return response()->json(['error' => 'Service indisponible.'], 503);
