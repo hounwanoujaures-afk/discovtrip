@@ -1,0 +1,51 @@
+name: Build Vendor Package
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build-vendor:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, xml, ctype, json, bcmath, openssl, pdo, mysql
+        coverage: none
+    
+    - name: Validate composer.json
+      run: composer validate --strict
+    
+    - name: Install dependencies
+      run: composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction
+    
+    - name: Create vendor.zip
+      run: |
+        cd vendor
+        zip -r ../vendor.zip . -x "*/tests/*" -x "*/test/*" -x "*/.git/*"
+        cd ..
+        ls -lh vendor.zip
+    
+    - name: Upload vendor.zip as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: vendor-package
+        path: vendor.zip
+        retention-days: 30
+    
+    - name: Create Release (optional)
+      if: github.event_name == 'workflow_dispatch'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: vendor.zip
+        tag_name: vendor-${{ github.run_number }}
+        name: Vendor Package ${{ github.run_number }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
