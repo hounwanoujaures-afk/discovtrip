@@ -349,8 +349,9 @@
                 </p>
                 <div class="dt-footer-socials" aria-label="Réseaux sociaux">
                     @foreach([
-                        ['icon' => 'fa-instagram',   'href' => '#', 'label' => 'Instagram'],
-                        ['icon' => 'fa-facebook-f',  'href' => '#', 'label' => 'Facebook'],
+                        ['icon' => 'fa-instagram',   'href' => 'https://www.instagram.com/discovtrip', 'label' => 'Instagram'],
+                        ['icon' => 'fa-facebook-f',  'href' => 'https://www.facebook.com/discovtrip', 'label' => 'Facebook'],
+                        ['icon' => 'fa-whatsapp',   'href' =>  'https://wa.me/2290XXXXXXXXX',           'label' => 'WhatsApp'],
                         ['icon' => 'fa-twitter',     'href' => '#', 'label' => 'Twitter / X'],
                         ['icon' => 'fa-linkedin-in', 'href' => '#', 'label' => 'LinkedIn'],
                         ['icon' => 'fa-youtube',     'href' => '#', 'label' => 'YouTube'],
@@ -401,7 +402,9 @@
                         </div>
                         <div>
                             <p class="dt-footer-contact-label">Email</p>
-                            <a href="/cdn-cgi/l/email-protection#197a76776d787a6d597d706a7a766f6d6b7069377a7674" class="dt-footer-contact-value"><span class="__cf_email__" data-cfemail="6b0804051f0a081f2b0f021808041d1f19021b45080406">[email&#160;protected]</span></a>
+                            <a href="mailto:hello@discovtrip.com" class="dt-footer-contact-value">
+                                hello@discovtrip.com
+                            </a>
                         </div>
                     </div>
                     <div class="dt-footer-contact-row">
