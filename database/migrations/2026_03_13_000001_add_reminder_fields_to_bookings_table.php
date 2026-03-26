@@ -10,15 +10,26 @@ return new class extends Migration
     {
         Schema::table('bookings', function (Blueprint $table) {
             // Utilisé par SendBookingReminders pour ne pas renvoyer deux fois le rappel
-            $table->boolean('reminder_sent')->default(false)->after('notes');
-            $table->timestamp('reminder_sent_at')->nullable()->after('reminder_sent');
+            // hasColumn checks : reminder_sent et reminder_sent_at sont déjà présents
+            // dans create_bookings_table — cette migration est idempotente
+            if (! Schema::hasColumn('bookings', 'reminder_sent')) {
+                $table->boolean('reminder_sent')->default(false)->after('notes');
+            }
+            if (! Schema::hasColumn('bookings', 'reminder_sent_at')) {
+                $table->timestamp('reminder_sent_at')->nullable()->after('reminder_sent');
+            }
         });
     }
 
     public function down(): void
     {
         Schema::table('bookings', function (Blueprint $table) {
-            $table->dropColumn(['reminder_sent', 'reminder_sent_at']);
+            if (Schema::hasColumn('bookings', 'reminder_sent_at')) {
+                $table->dropColumn('reminder_sent_at');
+            }
+            if (Schema::hasColumn('bookings', 'reminder_sent')) {
+                $table->dropColumn('reminder_sent');
+            }
         });
     }
 };
