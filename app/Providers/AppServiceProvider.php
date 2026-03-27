@@ -4,7 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\URL;
 use App\Models\Offer;
 use App\Observers\OfferObserver;
 
@@ -17,8 +17,12 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Forcer HTTPS en production (Railway proxy)
+        if (config('app.env') === 'production') {
+            URL::forceScheme('https');
+        }
+
         // Blade anonymous components pour les emails
-        // Usage : <x-emails.layout> dans les vues
         Blade::anonymousComponentPath(
             resource_path('views/emails'),
             'emails'
