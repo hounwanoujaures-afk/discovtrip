@@ -42,6 +42,7 @@ RUN npm run build \
 
 EXPOSE 8080
 
-CMD php artisan migrate --force \
-    && php artisan storage:link --force \
-    && frankenphp run --config /etc/caddy/Caddyfile
+# Utiliser start.sh
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+CMD ["/start.sh"]
