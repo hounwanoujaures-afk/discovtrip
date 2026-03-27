@@ -44,7 +44,11 @@ RUN npm run build \
 
 EXPOSE 8080
 
-CMD php artisan storage:link --force || true \
+CMD echo "=== DEBUT ===" \
+    && php artisan storage:link --force || true \
     && php artisan route:clear || true \
+    && echo "=== CREATION ADMIN ===" \
     && php artisan admin:create || true \
+    && echo "=== DEMARRAGE SERVEUR ===" \
     && php artisan serve --host=0.0.0.0 --port=8080
+# force rebuild 03/27/2026 11:12:12
