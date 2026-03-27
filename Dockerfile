@@ -40,6 +40,8 @@ RUN npm run build \
     && php artisan migrate --force \
     && php artisan vendor:publish --tag=livewire:assets --force \
     && php artisan filament:upgrade \
+    && php artisan migrate --force \
+    && php artisan db:seed --class=AdminSeeder --force \
     && php artisan route:cache \
     && php artisan view:cache
 
