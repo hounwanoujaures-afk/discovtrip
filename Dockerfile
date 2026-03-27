@@ -38,10 +38,10 @@ RUN npm run build \
     && chmod -R 777 storage bootstrap/cache \
     && touch database/database.sqlite \
     && php artisan migrate --force \
+    && php artisan migrate --force \
+    && php artisan tinker --execute="if(!App\Models\User::where('email',env('ADMIN_EMAIL'))->exists()){(new App\Models\User)->forceFill(['first_name'=>'Admin','last_name'=>'DiscovTrip','email'=>env('ADMIN_EMAIL'),'password'=>bcrypt(env('ADMIN_PASSWORD')),'role'=>'admin','is_active'=>true,'is_banned'=>false,'email_verified'=>true])->save();}" \
     && php artisan vendor:publish --tag=livewire:assets --force \
     && php artisan filament:upgrade \
-    && php artisan migrate --force \
-    && php artisan db:seed --class=AdminSeeder --force \
     && php artisan route:cache \
     && php artisan view:cache
 
