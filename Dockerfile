@@ -38,8 +38,6 @@ RUN npm run build \
     && chmod -R 777 storage bootstrap/cache \
     && touch database/database.sqlite \
     && php artisan migrate --force \
-    && php artisan db:seed --force || true \
-    && php artisan config:cache \
     && php artisan route:cache \
     && php artisan view:cache
 
