@@ -45,6 +45,6 @@ RUN npm run build \
 EXPOSE 8080
 
 CMD php artisan storage:link --force || true \
-    && php artisan route:clear \
-    && php artisan admin:create \
+    && php artisan route:clear || true \
+    && php artisan admin:create || true \
     && php artisan serve --host=0.0.0.0 --port=8080
