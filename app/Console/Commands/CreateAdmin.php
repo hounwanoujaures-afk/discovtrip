@@ -31,7 +31,7 @@ class CreateAdmin extends Command
         $user->last_name  = 'DiscovTrip';
         $user->email      = $email;
         $user->forceFill([
-            'password'       => Hash::make($password),
+            'password'       => \Illuminate\Support\Facades\Hash::make($password),
             'role'           => 'admin',
             'is_active'      => true,
             'is_banned'      => false,
