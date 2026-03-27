@@ -38,7 +38,6 @@ RUN npm run build \
     && chmod -R 777 storage bootstrap/cache \
     && touch database/database.sqlite \
     && php artisan migrate --force \
-    && php artisan admin:create \
     && php artisan vendor:publish --tag=livewire:assets --force \
     && php artisan filament:upgrade \
     && php artisan view:cache
@@ -47,4 +46,5 @@ EXPOSE 8080
 
 CMD php artisan storage:link --force || true \
     && php artisan route:clear \
+    && php artisan admin:create \
     && php artisan serve --host=0.0.0.0 --port=8080
