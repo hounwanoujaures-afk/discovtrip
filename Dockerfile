@@ -36,13 +36,14 @@ COPY . .
 RUN npm run build \
     && mkdir -p storage/framework/{sessions,views,cache,testing} storage/logs bootstrap/cache \
     && chmod -R 777 storage bootstrap/cache \
+    && touch database/database.sqlite \
+    && php artisan migrate --force \
+    && php artisan db:seed --force || true \
     && php artisan config:cache \
     && php artisan route:cache \
     && php artisan view:cache
 
 EXPOSE 8080
 
-# Utiliser start.sh
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
-CMD ["/start.sh"]
+CMD php artisan storage:link --force || true \
+    && php artisan serve --host=0.0.0.0 --port=8080
