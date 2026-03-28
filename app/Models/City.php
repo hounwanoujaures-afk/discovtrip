@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Support\Str;
 
 class City extends Model
 {
@@ -21,17 +22,14 @@ class City extends Model
         'description',
         'cover_image',
         'region',
-        // Métadonnées voyageur
         'distance_from_cotonou',
         'duration_days',
         'best_season',
         'category',
         'average_rating',
-        // Featuring & visibilité
         'is_featured',
         'is_active',
         'featured_order',
-        // Blocs éditoriaux
         'highlights',
         'landmarks',
         'how_to_get_there',
@@ -52,6 +50,27 @@ class City extends Model
     ];
 
     // ════════════════════════════════════════════════════════
+    // BOOT — Auto-slug
+    // ════════════════════════════════════════════════════════
+
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::creating(function ($city) {
+            if (empty($city->slug)) {
+                $city->slug = Str::slug($city->name);
+            }
+        });
+
+        static::updating(function ($city) {
+            if (empty($city->slug)) {
+                $city->slug = Str::slug($city->name);
+            }
+        });
+    }
+
+    // ════════════════════════════════════════════════════════
     // RELATIONS
     // ════════════════════════════════════════════════════════
 
@@ -65,9 +84,6 @@ class City extends Model
         return $this->hasMany(Offer::class);
     }
 
-    /**
-     * Tous les avis des offres de cette ville (via offers).
-     */
     public function reviews(): HasManyThrough
     {
         return $this->hasManyThrough(Review::class, Offer::class);
@@ -91,9 +107,6 @@ class City extends Model
     // ACCESSORS
     // ════════════════════════════════════════════════════════
 
-    /**
-     * Nombre d'offres publiées (nécessite withCount pour éviter une requête supplémentaire).
-     */
     public function getPublishedOffersCountAttribute(): int
     {
         return $this->offers()->published()->count();
@@ -103,14 +116,6 @@ class City extends Model
     // HELPERS
     // ════════════════════════════════════════════════════════
 
-    /**
-     * Recalcule la note moyenne de la ville à partir des reviews de ses offres.
-     *
-     * CORRECTION : calcul via reviews (pas via average_rating sur offers,
-     * qui est une colonne dénormalisée potentiellement vide).
-     *
-     * Usage : appelé dans un Observer ou une commande artisan.
-     */
     public function recalculateRating(): void
     {
         $avg = Review::query()
