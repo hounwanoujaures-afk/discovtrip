@@ -39,8 +39,7 @@ RUN npm run build \
     && touch database/database.sqlite \
     && php artisan migrate --force \
     && php artisan vendor:publish --tag=livewire:assets --force \
-    && php artisan filament:upgrade \
-    && php artisan view:cache
+    && php artisan filament:upgrade
 
 EXPOSE 8080
 
