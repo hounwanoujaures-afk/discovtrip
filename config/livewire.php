@@ -132,7 +132,7 @@ return [
         'disk'        => env('LIVEWIRE_TEMPORARY_FILE_UPLOAD_DISK', 'local'),
         'rules'       => ['required', 'file', 'max:20480'],
         'directory'   => 'livewire-tmp',
-        'middleware'  => 'throttle:60,1',
+        'middleware'  => 'web',
         'preview_mimes' => [
             'png', 'gif', 'bmp', 'svg', 'wav', 'mp4', 'mov',
             'rtf', 'pdf', 'psd', 'zip', 'default', 'doc', 'docx',
