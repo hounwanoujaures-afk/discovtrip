@@ -38,16 +38,14 @@ RUN npm run build \
     && chmod -R 777 storage bootstrap/cache \
     && touch database/database.sqlite \
     && php artisan migrate --force \
-    && php artisan vendor:publish --tag=livewire:assets --force \
     && php artisan filament:upgrade
 
 EXPOSE 8080
 
 CMD echo "=== DEBUT ===" \
     && php artisan storage:link --force || true \
-    && php artisan route:clear || true \
+    && php artisan vendor:publish --tag=livewire:assets --force || true \
     && echo "=== CREATION ADMIN ===" \
     && php artisan admin:create || true \
     && echo "=== DEMARRAGE SERVEUR ===" \
     && php artisan serve --host=0.0.0.0 --port=8080
-# force rebuild 03/27/2026 11:12:12
