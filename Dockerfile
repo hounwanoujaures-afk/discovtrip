@@ -34,7 +34,12 @@ COPY . .
 
 # Build + caches Laravel
 RUN npm run build \
-    && mkdir -p storage/framework/{sessions,views,cache,testing} storage/logs bootstrap/cache \
+    && mkdir -p storage/framework/sessions \
+    && mkdir -p storage/framework/views \
+    && mkdir -p storage/framework/cache \
+    && mkdir -p storage/framework/testing \
+    && mkdir -p storage/logs \
+    && mkdir -p bootstrap/cache \
     && chmod -R 777 storage bootstrap/cache \
     && touch database/database.sqlite \
     && php artisan migrate --force \
