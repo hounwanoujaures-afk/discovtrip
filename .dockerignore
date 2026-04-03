@@ -2,8 +2,7 @@
 .env.*
 node_modules
 .git
-storage/logs.env
-.env.*
-node_modules
-.git
 storage/logs
+storage/framework/views
+storage/framework/cache
+storage/framework/sessions

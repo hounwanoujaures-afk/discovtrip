@@ -43,6 +43,8 @@ RUN npm run build \
 EXPOSE 8080
 
 CMD echo "=== DEBUT ===" \
+    && php artisan view:clear || true \
+    && php artisan cache:clear || true \
     && php artisan storage:link --force || true \
     && php artisan vendor:publish --tag=livewire:assets --force || true \
     && echo "=== CREATION ADMIN ===" \
