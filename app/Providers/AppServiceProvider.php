@@ -17,18 +17,18 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Forcer HTTPS en production (Railway proxy)
         if (config('app.env') === 'production') {
             URL::forceScheme('https');
         }
 
-        // Blade anonymous components pour les emails
+        // DIAGNOSTIC TEMPORAIRE
+        \Log::info('=== APP_KEY PREFIX: ' . substr(md5(config('app.key')), 0, 8) . ' ===');
+
         Blade::anonymousComponentPath(
             resource_path('views/emails'),
             'emails'
         );
 
-        // Observer Offer
         Offer::observe(OfferObserver::class);
     }
 }
