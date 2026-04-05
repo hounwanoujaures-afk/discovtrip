@@ -74,15 +74,53 @@
 
 .hp-hero-bg { position: absolute; inset: 0; }
 
+/* Slideshow — toutes les images empilées, transition fade */
 .hp-hero-img {
   position: absolute;
   inset: 0;
   width: 100%; height: 100%;
   object-fit: cover;
   object-position: center 30%;
-  transform: scale(1.04);
-  will-change: transform;
-  animation: hp-fade-in .8s ease both;
+  will-change: opacity;
+}
+
+.hp-hero-slide {
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+
+.hp-hero-slide--active {
+  opacity: 1;
+}
+
+/* Dots indicateurs */
+.hp-hero-dots {
+  position: absolute;
+  bottom: 56px;
+  right: 40px;
+  display: flex;
+  gap: 8px;
+  z-index: 4;
+}
+
+.hp-hero-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.4);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: background .3s, transform .3s;
+}
+
+.hp-hero-dot--active {
+  background: var(--a-400);
+  transform: scale(1.4);
+}
+
+@media (max-width: 640px) {
+  .hp-hero-dots { bottom: 70px; right: 20px; }
 }
 
 .hp-hero-overlay {

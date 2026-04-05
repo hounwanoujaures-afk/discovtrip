@@ -19,6 +19,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Actions\EditAction;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Illuminate\Support\Str;
 
@@ -198,7 +199,7 @@ class BlogPostResource extends Resource
                     ->options(['destinations' => 'Destinations', 'conseils' => 'Conseils', 'culture' => 'Culture', 'pratique' => 'Pratique']),
             ])
             ->actions([EditAction::make(), DeleteAction::make()])
-            ->bulkActions([Tables\Actions\BulkActionGroup::make([DeleteBulkAction::make()])])
+            ->bulkActions([BulkActionGroup::make([DeleteBulkAction::make()])])
             ->defaultSort('created_at', 'desc');
     }
 
