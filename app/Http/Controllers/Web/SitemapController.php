@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\City;
 use App\Models\Offer;
+use App\Models\BlogPost;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 
