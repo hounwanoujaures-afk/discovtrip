@@ -148,7 +148,11 @@
                  class="dt-logo-img"
                  width="44" height="44"
                  loading="eager">
-            <span class="dt-logo-name">DiscovTrip</span>
+            {{-- Texte masqué sur mobile (le logo image suffit) --}}
+            <div class="dt-logo-text">
+                <span class="dt-logo-name">DiscovTrip</span>
+                <span class="dt-logo-tagline">Authentic Africa · Bénin</span>
+            </div>
         </a>
 
         {{-- ── Liens desktop ── --}}

@@ -245,7 +245,16 @@ ul, ol        { list-style: none; }
 }
 .dt-logo:hover .dt-logo-img { transform: scale(1.05); }
 
-.dt-logo-text { display: flex; flex-direction: column; }
+.dt-logo-text {
+    display: none; /* Caché sur mobile : le logo image contient déjà "DiscovTrip" */
+    flex-direction: column;
+}
+
+/* Afficher le bloc texte dès 640px */
+@media (min-width: 640px) {
+    .dt-logo-text { display: flex; }
+}
+
 .dt-logo-name {
     font-family: var(--font-display);
     font-size: 22px;
@@ -263,7 +272,7 @@ ul, ol        { list-style: none; }
     text-transform: uppercase;
     color: var(--a-500);
     margin-top: 2px;
-    display: none;
+    display: none; /* Caché par défaut, visible seulement sur large */
 }
 
 @media (min-width: 1280px) {

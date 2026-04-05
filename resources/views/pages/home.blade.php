@@ -18,18 +18,33 @@
 
 @section('content')
 
-{{-- §1 HERO --}}
-<section class="hp-hero" aria-label="Bannière principale">
+{{-- §1 HERO avec slideshow 3 images --}}
+<section class="hp-hero"
+         aria-label="Bannière principale"
+         x-data="{
+             slide: 0,
+             slides: [
+                 { src: '{{ asset('images/hero.jpg') }}',    caption: 'Cotonou · Bénin' },
+                 { src: '{{ asset('images/hero-2.jpg') }}',  caption: 'Ouidah · Histoire & Culture' },
+                 { src: '{{ asset('images/hero-3.jpg') }}',  caption: 'Ganvié · Venise de l\'Afrique' },
+             ],
+             init() {
+                 setInterval(() => { this.slide = (this.slide + 1) % this.slides.length; }, 6000);
+             }
+         }">
 
+    {{-- Fond slideshow --}}
     <div class="hp-hero-bg" aria-hidden="true">
-        <img id="dt-hero-img"
-             src="{{ asset('images/hero.jpg') }}"
-             alt=""
-             class="hp-hero-img"
-             loading="eager"
-             fetchpriority="high"
-             decoding="async"
-             width="1920" height="1080">
+        <template x-for="(s, i) in slides" :key="i">
+            <img :src="s.src"
+                 :alt="s.caption"
+                 class="hp-hero-img hp-hero-slide"
+                 :class="{ 'hp-hero-slide--active': slide === i }"
+                 loading="eager"
+                 fetchpriority="high"
+                 decoding="async"
+                 width="1920" height="1080">
+        </template>
         <div class="hp-hero-overlay"></div>
         <div class="hp-hero-grain"></div>
     </div>
@@ -38,7 +53,7 @@
 
         <p class="hp-hero-eyebrow">
             <span class="hp-hero-eyebrow-dot" aria-hidden="true"></span>
-            Bénin · Afrique de l'Ouest
+            <span x-text="slides[slide].caption">Bénin · Afrique de l'Ouest</span>
         </p>
 
         <h1 class="hp-hero-title">
@@ -91,6 +106,19 @@
             <div class="hp-trust-item"><i class="fas fa-undo-alt" aria-hidden="true"></i> Annulation gratuite</div>
         </div>
 
+    </div>
+
+    {{-- Indicateurs de slide --}}
+    <div class="hp-hero-dots" aria-label="Navigation slideshow" role="tablist">
+        <template x-for="(s, i) in slides" :key="i">
+            <button class="hp-hero-dot"
+                    :class="{ 'hp-hero-dot--active': slide === i }"
+                    @click="slide = i"
+                    :aria-label="'Slide ' + (i+1)"
+                    role="tab"
+                    :aria-selected="(slide === i).toString()">
+            </button>
+        </template>
     </div>
 
     <div class="hp-scroll-hint" aria-hidden="true">
