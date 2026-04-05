@@ -13,20 +13,20 @@
 @push('jsonld')
 <script type="application/ld+json">
 {
-    "@context": "https://schema.org",
-    "@type": "TouristAttraction",
+    "@@context": "https://schema.org",
+    "@@type": "TouristAttraction",
     "name": "{{ $offer->title }}",
     "description": "{{ Str::limit(strip_tags($offer->description), 200) }}",
     "url": "{{ route('offers.show', $offer->slug) }}",
     "image": "{{ $offer->cover_image ? asset('storage/'.$offer->cover_image) : asset('images/og-default.jpg') }}",
     "touristType": "{{ $offer->category_label }}",
     "address": {
-        "@type": "PostalAddress",
+        "@@type": "PostalAddress",
         "addressLocality": "{{ $offer->city->name ?? 'Bénin' }}",
         "addressCountry": "BJ"
     },
     "offers": {
-        "@type": "Offer",
+        "@@type": "Offer",
         "price": "{{ $offer->effective_price }}",
         "priceCurrency": "XOF",
         "availability": "https://schema.org/InStock",
@@ -34,7 +34,7 @@
     }
     @if($offer->average_rating > 0 && ($offer->reviews_count ?? 0) >= 3)
     ,"aggregateRating": {
-        "@type": "AggregateRating",
+        "@@type": "AggregateRating",
         "ratingValue": "{{ $offer->average_rating }}",
         "reviewCount": "{{ $offer->reviews_count }}",
         "bestRating": "5",

@@ -13,8 +13,8 @@
 @push('jsonld')
 <script type="application/ld+json">
 {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
+    "@@context": "https://schema.org",
+    "@@type": "BlogPosting",
     "headline": "{{ $post->title }}",
     "description": "{{ $post->excerpt }}",
     "image": "{{ $post->cover_image ? asset('storage/'.$post->cover_image) : asset('images/og-default.jpg') }}",
@@ -22,13 +22,13 @@
     "datePublished": "{{ $post->published_at?->toIso8601String() }}",
     "dateModified": "{{ $post->updated_at->toIso8601String() }}",
     "author": {
-        "@type": "Person",
+        "@@type": "Person",
         "name": "{{ $post->author?->name ?? 'DiscovTrip' }}"
     },
     "publisher": {
-        "@type": "Organization",
+        "@@type": "Organization",
         "name": "DiscovTrip",
-        "logo": { "@type": "ImageObject", "url": "{{ asset('images/logo.png') }}" }
+        "logo": { "@@type": "ImageObject", "url": "{{ asset('images/logo.png') }}" }
     },
     "timeRequired": "PT{{ $post->reading_time }}M"
 }

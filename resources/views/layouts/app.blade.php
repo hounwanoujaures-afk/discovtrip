@@ -81,8 +81,8 @@
     {{-- Schema.org JSON-LD global (SEO structuré — TravelAgency) --}}
     <script type="application/ld+json">
     {
-        "@context": "https://schema.org",
-        "@type": "TravelAgency",
+        "@@context": "https://schema.org",
+        "@@type": "TravelAgency",
         "name": "DiscovTrip",
         "description": "Plateforme de réservation d'expériences touristiques authentiques au Bénin, Afrique de l'Ouest.",
         "url": "{{ config('app.url') }}",
@@ -91,13 +91,13 @@
         "telephone": "+22901000000",
         "email": "contact@discovtrip.com",
         "address": {
-            "@type": "PostalAddress",
+            "@@type": "PostalAddress",
             "streetAddress": "Haie Vive",
             "addressLocality": "Cotonou",
             "addressCountry": "BJ"
         },
         "areaServed": {
-            "@type": "Country",
+            "@@type": "Country",
             "name": "Bénin"
         },
         "priceRange": "5 000 – 100 000 FCFA",
