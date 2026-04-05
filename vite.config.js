@@ -21,6 +21,10 @@ export default defineConfig({
                 // Auth
                 'resources/css/pages/auth/auth.css',
 
+                // Blog
+                'resources/css/pages/blog/index.css',
+                'resources/css/pages/blog/show.css',
+
                 // Bookings
                 'resources/css/pages/bookings/create.css',
                 'resources/css/pages/bookings/index.css',

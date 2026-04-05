@@ -20,6 +20,7 @@ use App\Http\Controllers\Web\CguController;
 use App\Http\Controllers\Web\PrivacyController;
 use App\Http\Controllers\Web\CancellationController;
 use App\Http\Controllers\Web\FaqController;
+use App\Http\Controllers\Web\BlogController;
 
 // ══════════════════════════════════════════════════════
 // ROUTES PUBLIQUES
@@ -61,6 +62,10 @@ Route::get('/annulation-gratuite',    [CancellationController::class, 'show'])->
 // ── FAQ — CORRECTION : Route::view() doublon supprimé ─
 // FaqController::show() est la version correcte (données dynamiques).
 Route::get('/faq', [FaqController::class, 'show'])->name('faq');
+
+// ── Blog ───────────────────────────────────────────────
+Route::get('/blog',        [BlogController::class, 'index'])->name('blog.index');
+Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
 
 // ══════════════════════════════════════════════════════
 // RÉSERVATIONS — PUBLIQUES

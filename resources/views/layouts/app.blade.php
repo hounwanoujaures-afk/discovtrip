@@ -40,7 +40,7 @@
 
     {{-- Favicons --}}
     <link rel="icon"             href="{{ asset('favicon.ico') }}"                type="image/x-icon">
-    <link rel="apple-touch-icon" href="{{ asset('images/apple-touch-icon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
 
     {{-- ════════════════════════════════════════
          FONTS — Google Fonts avec preload
@@ -78,21 +78,38 @@
     {{-- Balises meta supplémentaires (OG, canonical, JSON-LD) par page --}}
     @stack('meta')
 
-    {{-- Schema.org JSON-LD (SEO structuré) --}}
+    {{-- Schema.org JSON-LD global (SEO structuré — TravelAgency) --}}
     <script type="application/ld+json">
     {
-        "@@context": "https://schema.org",
-        "@@type": "TravelAgency",
+        "@context": "https://schema.org",
+        "@type": "TravelAgency",
         "name": "DiscovTrip",
-        "description": "Agence de tourisme premium au Bénin",
+        "description": "Plateforme de réservation d'expériences touristiques authentiques au Bénin, Afrique de l'Ouest.",
         "url": "{{ config('app.url') }}",
+        "logo": "{{ asset('images/logo.png') }}",
+        "image": "{{ asset('images/og-default.jpg') }}",
+        "telephone": "+22901000000",
+        "email": "contact@discovtrip.com",
         "address": {
-            "@@type": "PostalAddress",
+            "@type": "PostalAddress",
+            "streetAddress": "Haie Vive",
             "addressLocality": "Cotonou",
             "addressCountry": "BJ"
-        }
+        },
+        "areaServed": {
+            "@type": "Country",
+            "name": "Bénin"
+        },
+        "priceRange": "5 000 – 100 000 FCFA",
+        "sameAs": [
+            "https://www.facebook.com/discovtrip",
+            "https://www.instagram.com/discovtrip"
+        ]
     }
     </script>
+
+    {{-- JSON-LD spécifique à la page (offres, articles de blog, etc.) --}}
+    @stack('jsonld')
 </head>
 
 {{-- ════════════════════════════════════════
@@ -131,9 +148,6 @@
                  class="dt-logo-img"
                  width="44" height="44"
                  loading="eager">
-            <div class="dt-logo-text">
-                <span class="dt-logo-name">DiscovTrip</span>
-                <span class="dt-logo-tagline">Authentic Africa · Bénin</span>
             </div>
         </a>
 
@@ -402,8 +416,8 @@
                         </div>
                         <div>
                             <p class="dt-footer-contact-label">Email</p>
-                            <a href="mailto:hello@discovtrip.com" class="dt-footer-contact-value">
-                                hello@discovtrip.com
+                            <a href="mailto:contact@discovtrip.com" class="dt-footer-contact-value">
+                                contact@discovtrip.com
                             </a>
                         </div>
                     </div>
@@ -413,7 +427,7 @@
                         </div>
                         <div>
                             <p class="dt-footer-contact-label">Téléphone</p>
-                            <a href="tel:+2290100000000" class="dt-footer-contact-value">+229 XX XX XX XX XX</a>
+                            <a href="tel:+22901000000" class="dt-footer-contact-value">+229 01 00 00 00 00</a>
                         </div>
                     </div>
                     <div class="dt-footer-contact-row">

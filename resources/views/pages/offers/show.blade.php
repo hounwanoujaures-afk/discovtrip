@@ -4,8 +4,46 @@
     @vite('resources/css/pages/offers/show.css')
 @endpush
 
-@section('title', $offer->title . ' — DiscovTrip')
-@section('description', $offer->description)
+@section('title', $offer->title . ' — DiscovTrip Bénin')
+@section('description', Str::limit(strip_tags($offer->description), 155))
+@section('og_title', $offer->title . ' — DiscovTrip')
+@section('og_description', Str::limit(strip_tags($offer->description), 155))
+@section('og_image', $offer->cover_image ? asset('storage/'.$offer->cover_image) : asset('images/og-default.jpg'))
+
+@push('jsonld')
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "TouristAttraction",
+    "name": "{{ $offer->title }}",
+    "description": "{{ Str::limit(strip_tags($offer->description), 200) }}",
+    "url": "{{ route('offers.show', $offer->slug) }}",
+    "image": "{{ $offer->cover_image ? asset('storage/'.$offer->cover_image) : asset('images/og-default.jpg') }}",
+    "touristType": "{{ $offer->category_label }}",
+    "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "{{ $offer->city->name ?? 'Bénin' }}",
+        "addressCountry": "BJ"
+    },
+    "offers": {
+        "@type": "Offer",
+        "price": "{{ $offer->effective_price }}",
+        "priceCurrency": "XOF",
+        "availability": "https://schema.org/InStock",
+        "url": "{{ route('offers.show', $offer->slug) }}"
+    }
+    @if($offer->average_rating > 0 && ($offer->reviews_count ?? 0) >= 3)
+    ,"aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "{{ $offer->average_rating }}",
+        "reviewCount": "{{ $offer->reviews_count }}",
+        "bestRating": "5",
+        "worstRating": "1"
+    }
+    @endif
+}
+</script>
+@endpush
 
 @section('content')
 
