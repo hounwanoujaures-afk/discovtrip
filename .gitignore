@@ -24,3 +24,16 @@ Homestead.yaml
 Thumbs.db
 .env.herd
 .env.xampp
+
+# Données sensibles — ne jamais committer
+/storage/framework/sessions
+/storage/framework/cache
+/storage/framework/views
+/storage/app/private
+/storage/app/livewire-tmp
+/storage/cache
+
+# SQLite local — Railway utilise un volume persistant
+/database/*.sqlite
+/database/*.sqlite-shm
+/database/*.sqlite-wal

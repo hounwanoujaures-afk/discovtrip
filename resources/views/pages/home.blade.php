@@ -68,12 +68,12 @@
                     <label for="hs-category" class="hp-search-label">Type d'expérience</label>
                     <select id="hs-category" name="category" class="hp-search-select">
                         <option value="">Toutes les catégories</option>
-                        <option value="culture">Culture &amp; Histoire</option>
+                        <option value="cultural">Culture &amp; Histoire</option>
                         <option value="nature">Nature &amp; Aventure</option>
-                        <option value="gastronomie">Gastronomie</option>
-                        <option value="plage">Plage &amp; Détente</option>
-                        <option value="spiritualite">Spiritualité</option>
-                        <option value="artisanat">Artisanat &amp; Art</option>
+                        <option value="gastronomy">Gastronomie</option>
+                        <option value="adventure">Aventure</option>
+                        <option value="wellness">Bien-être</option>
+                        <option value="urban">Urbain</option>
                     </select>
                 </div>
                 <button type="submit" class="hp-search-btn" aria-label="Lancer la recherche">
@@ -115,7 +115,11 @@
         <div class="hp-stat-item dt-reveal dt-delay-2">
             <div class="hp-stat-icon" aria-hidden="true"><i class="fas fa-compass"></i></div>
             <div class="hp-stat-num-wrap">
-                <span class="hp-stat-num" data-target="{{ $totalOffers }}">0</span>
+                @if($totalOffers > 0)
+                    <span class="hp-stat-num" data-target="{{ $totalOffers }}">0</span>
+                @else
+                    <span class="hp-stat-num">—</span>
+                @endif
             </div>
             <p class="hp-stat-label">Expériences uniques</p>
         </div>
