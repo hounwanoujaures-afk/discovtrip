@@ -148,7 +148,7 @@
                  class="dt-logo-img"
                  width="44" height="44"
                  loading="eager">
-            </div>
+            <span class="dt-logo-name">DiscovTrip</span>
         </a>
 
         {{-- ── Liens desktop ── --}}
@@ -160,6 +160,10 @@
             <a href="{{ url('/destinations') }}"
                class="dt-nav-link {{ request()->is('destinations*') ? 'dt-nav-link--active' : '' }}">
                 Destinations
+            </a>
+            <a href="{{ route('blog.index') }}"
+               class="dt-nav-link {{ request()->routeIs('blog*') ? 'dt-nav-link--active' : '' }}">
+                Blog
             </a>
             <a href="{{ url('/about') }}"
                class="dt-nav-link {{ request()->is('about*') ? 'dt-nav-link--active' : '' }}">
@@ -246,10 +250,11 @@
     <nav aria-label="Menu mobile" class="dt-mobile-nav">
         @php
         $mobileLinks = [
-            ['href' => route('offers.index'), 'label' => 'Expériences',  'icon' => 'fa-compass'],
-            ['href' => url('/destinations'),   'label' => 'Destinations', 'icon' => 'fa-map-marked-alt'],
-            ['href' => url('/about'),          'label' => 'À propos',     'icon' => 'fa-info-circle'],
-            ['href' => url('/contact'),        'label' => 'Contact',      'icon' => 'fa-envelope'],
+            ['href' => route('offers.index'),  'label' => 'Expériences',  'icon' => 'fa-compass'],
+            ['href' => url('/destinations'),    'label' => 'Destinations', 'icon' => 'fa-map-marked-alt'],
+            ['href' => route('blog.index'),     'label' => 'Blog',         'icon' => 'fa-newspaper'],
+            ['href' => url('/about'),           'label' => 'À propos',     'icon' => 'fa-info-circle'],
+            ['href' => url('/contact'),         'label' => 'Contact',      'icon' => 'fa-envelope'],
         ];
         @endphp
         @foreach($mobileLinks as $link)
