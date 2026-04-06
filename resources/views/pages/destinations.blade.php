@@ -41,27 +41,8 @@ foreach ($cities as $c) {
 ══════════════════════════════════════════════ --}}
 <section class="dp-hero">
 
-    {{-- Motif wax --}}
-    <div class="dp-hero-wax" aria-hidden="true">
-        <svg class="dp-wax-svg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice">
-            <defs>
-                <pattern id="wp-d" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
-                    <polygon points="40,4 76,40 40,76 4,40" fill="none" stroke="rgba(232,188,58,.12)" stroke-width="1"/>
-                    <circle cx="40" cy="40" r="4" fill="none" stroke="rgba(232,188,58,.15)" stroke-width="1"/>
-                    <line x1="40" y1="4" x2="40" y2="76" stroke="rgba(232,188,58,.06)" stroke-width=".5"/>
-                    <line x1="4" y1="40" x2="76" y2="40" stroke="rgba(232,188,58,.06)" stroke-width=".5"/>
-                </pattern>
-                <pattern id="wp-t" x="0" y="0" width="56" height="56" patternUnits="userSpaceOnUse">
-                    <polygon points="28,4 52,48 4,48" fill="none" stroke="rgba(42,143,94,.1)" stroke-width="1"/>
-                </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#wp-d)"/>
-            <rect width="100%" height="100%" fill="url(#wp-t)" opacity=".6"/>
-        </svg>
-        <div class="dp-wax-glow dp-wax-g1"></div>
-        <div class="dp-wax-glow dp-wax-g2"></div>
-        <div class="dp-wax-glow dp-wax-g3"></div>
-    </div>
+    {{-- Fond : image DB ou var(--f-900) + motif wax --}}
+    <x-hero-bg setting-key="hero_destinations" pattern-id="wp-dp" />
 
     <div class="dt-container dp-hero-inner">
 

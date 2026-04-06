@@ -13,7 +13,10 @@
 
 {{-- §1 HERO ──────────────────────────────────────────────── --}}
 <section class="blog-hero" aria-label="En-tête blog">
-    <div class="dt-container">
+    {{-- Fond : image DB ou var(--f-900) + motif wax --}}
+    <x-hero-bg setting-key="hero_blog" pattern-id="wp-blog" />
+
+    <div class="dt-container" style="position:relative;z-index:2">
         <p class="blog-hero__eyebrow">✦ Le magazine DiscovTrip</p>
         <h1 class="blog-hero__title">Voyager au Bénin,<br><em>ça se prépare</em></h1>
         <p class="blog-hero__sub">

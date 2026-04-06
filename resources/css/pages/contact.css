@@ -43,7 +43,7 @@
 }
 
 .ct-hero-inner {
-    position: relative; z-index: 1;
+    position: relative; z-index: 2;
     display: grid;
     grid-template-columns: 1fr 380px;
     gap: 64px; align-items: center;

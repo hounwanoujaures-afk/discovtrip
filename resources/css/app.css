@@ -1164,3 +1164,74 @@ a.dt-footer-contact-value:hover { color: var(--a-300); }
         transform: none;
     }
 }
+
+/* ══════════════════════════════════════════════════════
+   COMPOSANT HERO-BG — utilisé sur toutes les pages
+   Fond : var(--f-900) + motif wax + glows par défaut
+   Avec image : plein écran + overlay + motif superposé
+══════════════════════════════════════════════════════ */
+
+.dt-hero-bg {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+/* Image plein fond */
+.dt-hero-bg__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 30%;
+}
+
+/* Overlay sombre sur l'image */
+.dt-hero-bg__overlay {
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(to bottom, rgba(9,9,10,.55) 0%, rgba(9,9,10,.70) 100%),
+        linear-gradient(135deg, rgba(13,56,34,.4) 0%, transparent 60%);
+}
+
+/* Motif wax SVG */
+.dt-hero-bg__wax {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Opacité réduite si image en fond (motif subtil) */
+.dt-hero-bg__wax--over-img {
+    opacity: .35;
+}
+
+/* Glows radial */
+.dt-hero-bg__glow {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(90px);
+}
+
+.dt-hero-bg__glow--1 {
+    width: 520px; height: 520px;
+    top: -120px; left: -100px;
+    background: radial-gradient(circle, rgba(212,162,15,.13) 0%, transparent 70%);
+}
+
+.dt-hero-bg__glow--2 {
+    width: 420px; height: 420px;
+    bottom: 0; right: 8%;
+    background: radial-gradient(circle, rgba(42,143,94,.16) 0%, transparent 70%);
+}
+
+.dt-hero-bg__glow--3 {
+    width: 320px; height: 320px;
+    top: 45%; left: 48%;
+    background: radial-gradient(circle, rgba(212,162,15,.07) 0%, transparent 70%);
+}

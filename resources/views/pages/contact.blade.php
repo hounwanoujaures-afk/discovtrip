@@ -20,8 +20,8 @@
      §1  HERO — humain, contacts directs visibles
 ════════════════════════════════════════════ --}}
 <section class="ct-hero">
-    <div class="ct-hero-pattern" aria-hidden="true"></div>
-    <div class="ct-hero-glow"    aria-hidden="true"></div>
+    {{-- Fond : image DB ou var(--f-900) + motif wax --}}
+    <x-hero-bg setting-key="hero_contact" pattern-id="wp-ct" />
 
     <div class="dt-container ct-hero-inner">
 

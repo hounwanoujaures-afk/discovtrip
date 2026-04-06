@@ -21,22 +21,8 @@
 ════════════════════════════════════════════ --}}
 <section class="ab-hero">
 
-    {{-- Motif wax --}}
-    <div class="ab-hero-wax" aria-hidden="true">
-        <svg class="ab-wax-svg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice">
-            <defs>
-                <pattern id="ab-wp" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
-                    <polygon points="40,4 76,40 40,76 4,40" fill="none" stroke="rgba(232,188,58,.1)" stroke-width="1"/>
-                    <circle cx="40" cy="40" r="4" fill="none" stroke="rgba(232,188,58,.12)" stroke-width="1"/>
-                    <line x1="40" y1="4" x2="40" y2="76" stroke="rgba(232,188,58,.05)" stroke-width=".5"/>
-                    <line x1="4" y1="40" x2="76" y2="40" stroke="rgba(232,188,58,.05)" stroke-width=".5"/>
-                </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#ab-wp)"/>
-        </svg>
-        <div class="ab-wax-glow ab-glow-1"></div>
-        <div class="ab-wax-glow ab-glow-2"></div>
-    </div>
+    {{-- Fond : image DB ou var(--f-900) + motif wax --}}
+    <x-hero-bg setting-key="hero_about" pattern-id="wp-ab" />
 
     <div class="dt-container ab-hero-inner">
 
