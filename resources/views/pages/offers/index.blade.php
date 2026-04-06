@@ -45,9 +45,8 @@ $wishlistIds = Auth::check()
 
 {{-- ════ HERO ════ --}}
 <section class="opl-hero" aria-label="Rechercher une expérience">
-    <div class="opl-hero-halo opl-hero-halo-1" aria-hidden="true"></div>
-    <div class="opl-hero-halo opl-hero-halo-2" aria-hidden="true"></div>
-    <div class="opl-hero-halo opl-hero-halo-3" aria-hidden="true"></div>
+    {{-- Fond : image DB ou var(--f-900) + motif wax --}}
+    <x-hero-bg setting-key="hero_offers" pattern-id="wp-opl" />
 
     <div class="opl-hero-inner">
 
