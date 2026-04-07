@@ -24,14 +24,14 @@ class HeroSettings extends Page implements HasForms
     protected static string  $view            = 'filament.pages.hero-settings';
 
     // Propriétés liées aux champs du formulaire
-    public ?string $hero_home_1    = null;
-    public ?string $hero_home_2    = null;
-    public ?string $hero_home_3    = null;
-    public ?string $hero_offers    = null;
-    public ?string $hero_destinations = null;
-    public ?string $hero_about     = null;
-    public ?string $hero_contact   = null;
-    public ?string $hero_blog      = null;
+    public mixed $hero_home_1    = null;
+    public mixed $hero_home_2    = null;
+    public mixed $hero_home_3    = null;
+    public mixed $hero_offers    = null;
+    public mixed $hero_destinations = null;
+    public mixed $hero_about     = null;
+    public mixed $hero_contact   = null;
+    public mixed $hero_blog      = null;
 
     public function mount(): void
     {

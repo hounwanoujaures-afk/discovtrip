@@ -395,7 +395,7 @@
                 <ul>
                     <li><a href="{{ route('offers.index') }}" class="dt-footer-link">Toutes les expériences</a></li>
                     <li><a href="{{ url('/destinations') }}"  class="dt-footer-link">Destinations</a></li>
-                    <li><a href="{{ route('offers.index') }}" class="dt-footer-link">Offres spéciales</a></li>
+                    <li><a href="{{ route('blog.index') }}"   class="dt-footer-link">Blog & Conseils</a></li>
                     <li><a href="{{ url('/about') }}"         class="dt-footer-link">Notre histoire</a></li>
                     <li><a href="{{ url('/contact') }}"       class="dt-footer-link">Contactez-nous</a></li>
                 </ul>

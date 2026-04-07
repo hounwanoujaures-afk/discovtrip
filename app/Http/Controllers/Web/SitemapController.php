@@ -88,6 +88,31 @@ class SitemapController extends Controller
             ];
         }
 
+
+        // ── Articles de blog publiés ─────────────────────
+        $blogPosts = BlogPost::published()
+            ->whereNotNull('slug')
+            ->select(['slug', 'updated_at'])
+            ->orderByDesc('published_at')
+            ->get();
+
+        foreach ($blogPosts as $post) {
+            $urls[] = [
+                'loc'        => $baseUrl . '/blog/' . $post->slug,
+                'lastmod'    => $post->updated_at?->toAtomString() ?? $now,
+                'changefreq' => 'monthly',
+                'priority'   => '0.7',
+            ];
+        }
+
+        // ── Ajout /blog index ──────────────────────────────
+        array_splice($urls, 3, 0, [[
+            'loc'        => $baseUrl . '/blog',
+            'lastmod'    => $now,
+            'changefreq' => 'weekly',
+            'priority'   => '0.8',
+        ]]);
+
         // ── Construction XML ─────────────────────────────────
         $xml  = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' . "\n";
