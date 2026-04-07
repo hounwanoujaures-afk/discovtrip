@@ -24,9 +24,9 @@
          x-data="{
              slide: 0,
              slides: [
-                 { src: '{{ asset('images/hero.jpg') }}',    caption: 'Cotonou · Bénin' },
-                 { src: '{{ asset('images/hero-2.jpg') }}',  caption: 'Ouidah · Histoire & Culture' },
-                 { src: '{{ asset('images/hero-3.jpg') }}',  caption: 'Ganvié · Venise de l\'Afrique' },
+                 { src: '{{ \App\Providers\AppServiceProvider::heroImage("hero_home_1", asset("images/hero.jpg")) }}',   caption: 'Cotonou · Bénin' },
+                 { src: '{{ \App\Providers\AppServiceProvider::heroImage("hero_home_2", asset("images/hero-2.jpg")) }}', caption: 'Ouidah · Histoire & Culture' },
+                 { src: '{{ \App\Providers\AppServiceProvider::heroImage("hero_home_3", asset("images/hero-3.jpg")) }}', caption: 'Ganvié · Venise de l\'Afrique' },
              ],
              init() {
                  setInterval(() => { this.slide = (this.slide + 1) % this.slides.length; }, 6000);
