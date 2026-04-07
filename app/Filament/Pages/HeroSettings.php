@@ -15,9 +15,8 @@ class HeroSettings extends Page implements HasForms
 {
     use InteractsWithForms;
 
-    // Toutes les propriétés de navigation remplacées par des méthodes
-    // pour éviter les conflits de types PHP 8.4 + Filament 5
-    protected static string $view = 'filament.pages.hero-settings';
+    // $view est NON-STATIC dans Filament\Pages\Page — ne pas redeclarer static
+    protected string $view = 'filament.pages.hero-settings';
 
     public static function getNavigationIcon(): string
     {
@@ -39,7 +38,6 @@ class HeroSettings extends Page implements HasForms
         return 10;
     }
 
-    // Propriétés des champs FileUpload
     public mixed $hero_home_1       = null;
     public mixed $hero_home_2       = null;
     public mixed $hero_home_3       = null;
@@ -70,60 +68,51 @@ class HeroSettings extends Page implements HasForms
         return $schema->components([
 
             Section::make('🏠 Page d\'accueil — Slideshow')
-                ->description('3 images qui défilent automatiquement sur la home. Format recommandé : 1920×1080px.')
+                ->description('3 images défilant automatiquement. Format : 1920×1080px.')
                 ->icon('heroicon-o-home')
                 ->schema([
                     FileUpload::make('hero_home_1')
-                        ->label('Image 1 (principale)')
-                        ->image()
-                        ->directory('hero')
-                        ->disk('public')
-                        ->maxSize(3072)
-                        ->imageEditor()
-                        ->helperText('Ex: Vue panoramique Cotonou'),
+                        ->label('Image 1 — principale')
+                        ->image()->directory('hero')->disk('public')
+                        ->maxSize(3072)->imageEditor()
+                        ->helperText('Ex : Vue panoramique Cotonou'),
 
                     FileUpload::make('hero_home_2')
                         ->label('Image 2')
-                        ->image()
-                        ->directory('hero')
-                        ->disk('public')
-                        ->maxSize(3072)
-                        ->imageEditor()
-                        ->helperText('Ex: Route des Esclaves Ouidah'),
+                        ->image()->directory('hero')->disk('public')
+                        ->maxSize(3072)->imageEditor()
+                        ->helperText('Ex : Route des Esclaves Ouidah'),
 
                     FileUpload::make('hero_home_3')
                         ->label('Image 3')
-                        ->image()
-                        ->directory('hero')
-                        ->disk('public')
-                        ->maxSize(3072)
-                        ->imageEditor()
-                        ->helperText('Ex: Village lacustre Ganvié'),
+                        ->image()->directory('hero')->disk('public')
+                        ->maxSize(3072)->imageEditor()
+                        ->helperText('Ex : Village lacustre Ganvié'),
                 ])
                 ->columns(3),
 
             Section::make('📄 Autres pages')
-                ->description('Image de fond pour les heroes. Format recommandé : 1920×600px.')
+                ->description('Image de fond des heroes. Format : 1920×600px.')
                 ->icon('heroicon-o-rectangle-stack')
                 ->schema([
                     FileUpload::make('hero_offers')
-                        ->label('Page Expériences')
+                        ->label('Expériences')
                         ->image()->directory('hero')->disk('public')->maxSize(3072)->imageEditor(),
 
                     FileUpload::make('hero_destinations')
-                        ->label('Page Destinations')
+                        ->label('Destinations')
                         ->image()->directory('hero')->disk('public')->maxSize(3072)->imageEditor(),
 
                     FileUpload::make('hero_about')
-                        ->label('Page À propos')
+                        ->label('À propos')
                         ->image()->directory('hero')->disk('public')->maxSize(3072)->imageEditor(),
 
                     FileUpload::make('hero_contact')
-                        ->label('Page Contact')
+                        ->label('Contact')
                         ->image()->directory('hero')->disk('public')->maxSize(3072)->imageEditor(),
 
                     FileUpload::make('hero_blog')
-                        ->label('Page Blog')
+                        ->label('Blog')
                         ->image()->directory('hero')->disk('public')->maxSize(3072)->imageEditor(),
                 ])
                 ->columns(3),
@@ -146,18 +135,14 @@ class HeroSettings extends Page implements HasForms
             if ($value) {
                 SiteSetting::updateOrCreate(
                     ['key' => $key],
-                    ['value' => $value, 'type' => 'image', 'description' => "Hero image: {$key}"]
+                    ['value' => $value, 'type' => 'image', 'description' => "Hero: {$key}"]
                 );
             }
         }
 
         cache()->forget('home.featured_offers');
-        cache()->forget('home.featured_cities');
         cache()->forget('home.stats');
 
-        Notification::make()
-            ->title('✅ Images hero sauvegardées !')
-            ->success()
-            ->send();
+        Notification::make()->title('✅ Images sauvegardées !')->success()->send();
     }
 }
