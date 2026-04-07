@@ -19,8 +19,13 @@ class HeroSettings extends Page implements HasForms
 
     protected static ?string $navigationIcon = 'heroicon-o-photo';
     protected static ?string $navigationLabel = 'Images Hero';
-    protected static $navigationGroup = 'Contenu';
     protected static ?int    $navigationSort  = 10;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return 'Contenu';
+    }
+
     protected static string  $view            = 'filament.pages.hero-settings';
 
     // Propriétés liées aux champs du formulaire
