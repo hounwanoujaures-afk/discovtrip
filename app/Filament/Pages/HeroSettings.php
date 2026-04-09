@@ -38,14 +38,14 @@ class HeroSettings extends Page implements HasForms
         return 10;
     }
 
-    public ?array $hero_home_1       = null;
-    public ?array $hero_home_2       = null;
-    public ?array $hero_home_3       = null;
-    public ?array $hero_offers       = null;
-    public ?array $hero_destinations = null;
-    public ?array $hero_about        = null;
-    public ?array $hero_contact      = null;
-    public ?array $hero_blog         = null;
+    public array $hero_home_1       = [];
+    public array $hero_home_2       = [];
+    public array $hero_home_3       = [];
+    public array $hero_offers       = [];
+    public array $hero_destinations = [];
+    public array $hero_about        = [];
+    public array $hero_contact      = [];
+    public array $hero_blog         = [];
 
     public function mount(): void
     {
