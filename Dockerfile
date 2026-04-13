@@ -7,12 +7,13 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs
 
-# Extensions PHP
+# Extensions PHP — pdo_pgsql ajouté pour PostgreSQL
 RUN install-php-extensions \
     intl \
     zip \
     gd \
     pdo_mysql \
+    pdo_pgsql \
     opcache \
     mbstring \
     xml \
@@ -32,7 +33,8 @@ RUN npm ci
 # Tout le projet
 COPY . .
 
-# Build + caches Laravel
+# Build assets + structure dossiers
+# IMPORTANT : migrate retiré ici — PostgreSQL non disponible au build
 RUN npm run build \
     && mkdir -p storage/framework/sessions \
     && mkdir -p storage/framework/views \
@@ -40,14 +42,14 @@ RUN npm run build \
     && mkdir -p storage/framework/testing \
     && mkdir -p storage/logs \
     && mkdir -p bootstrap/cache \
-    && chmod -R 777 storage bootstrap/cache \
-    && touch database/database.sqlite \
-    && php artisan migrate --force \
-    && php artisan filament:upgrade
+    && chmod -R 777 storage bootstrap/cache
 
 EXPOSE 8080
 
+# Migrate au runtime — PostgreSQL disponible ici
 CMD echo "=== DEBUT ===" \
+    && php artisan migrate --force || true \
+    && php artisan filament:upgrade || true \
     && php artisan optimize:clear || true \
     && php artisan storage:link --force || true \
     && php artisan vendor:publish --tag=livewire:assets --force || true \
