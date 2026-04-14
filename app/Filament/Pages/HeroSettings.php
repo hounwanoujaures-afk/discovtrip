@@ -15,7 +15,7 @@ class HeroSettings extends Page implements HasForms
 {
     use InteractsWithForms;
 
-    // $view est NON-STATIC dans Filament\Pages\Page — ne pas redeclarer static
+    // $view NON-STATIC — Filament\Pages\Page déclare $view comme non-static
     protected string $view = 'filament.pages.hero-settings';
 
     public static function getNavigationIcon(): string
@@ -38,6 +38,7 @@ class HeroSettings extends Page implements HasForms
         return 10;
     }
 
+    // Propriétés avec type array (Livewire n'accepte pas mixed ni ?array)
     public array $hero_home_1       = [];
     public array $hero_home_2       = [];
     public array $hero_home_3       = [];
@@ -55,12 +56,15 @@ class HeroSettings extends Page implements HasForms
             'hero_about', 'hero_contact', 'hero_blog',
         ];
 
+        $data = [];
         foreach ($keys as $key) {
             $setting = SiteSetting::where('key', $key)->first();
-            if ($setting?->value) {
-                $this->$key = [$setting->value];
-            }
+            // FileUpload Filament v5 attend un tableau avec le chemin
+            $data[$key] = $setting?->value ? [$setting->value] : [];
         }
+
+        // Filament v5 : on remplit le formulaire via fill()
+        $this->form->fill($data);
     }
 
     public function form(Schema $schema): Schema
@@ -73,20 +77,29 @@ class HeroSettings extends Page implements HasForms
                 ->schema([
                     FileUpload::make('hero_home_1')
                         ->label('Image 1 — principale')
-                        ->image()->directory('hero')->disk('public')
-                        ->maxSize(3072)->imageEditor()
+                        ->image()
+                        ->directory('hero')
+                        ->disk('public')
+                        ->maxSize(3072)
+                        ->imageEditor()
                         ->helperText('Ex : Vue panoramique Cotonou'),
 
                     FileUpload::make('hero_home_2')
                         ->label('Image 2')
-                        ->image()->directory('hero')->disk('public')
-                        ->maxSize(3072)->imageEditor()
+                        ->image()
+                        ->directory('hero')
+                        ->disk('public')
+                        ->maxSize(3072)
+                        ->imageEditor()
                         ->helperText('Ex : Route des Esclaves Ouidah'),
 
                     FileUpload::make('hero_home_3')
                         ->label('Image 3')
-                        ->image()->directory('hero')->disk('public')
-                        ->maxSize(3072)->imageEditor()
+                        ->image()
+                        ->directory('hero')
+                        ->disk('public')
+                        ->maxSize(3072)
+                        ->imageEditor()
                         ->helperText('Ex : Village lacustre Ganvié'),
                 ])
                 ->columns(3),
@@ -97,23 +110,28 @@ class HeroSettings extends Page implements HasForms
                 ->schema([
                     FileUpload::make('hero_offers')
                         ->label('Expériences')
-                        ->image()->directory('hero')->disk('public')->maxSize(3072)->imageEditor(),
+                        ->image()->directory('hero')->disk('public')
+                        ->maxSize(3072)->imageEditor(),
 
                     FileUpload::make('hero_destinations')
                         ->label('Destinations')
-                        ->image()->directory('hero')->disk('public')->maxSize(3072)->imageEditor(),
+                        ->image()->directory('hero')->disk('public')
+                        ->maxSize(3072)->imageEditor(),
 
                     FileUpload::make('hero_about')
                         ->label('À propos')
-                        ->image()->directory('hero')->disk('public')->maxSize(3072)->imageEditor(),
+                        ->image()->directory('hero')->disk('public')
+                        ->maxSize(3072)->imageEditor(),
 
                     FileUpload::make('hero_contact')
                         ->label('Contact')
-                        ->image()->directory('hero')->disk('public')->maxSize(3072)->imageEditor(),
+                        ->image()->directory('hero')->disk('public')
+                        ->maxSize(3072)->imageEditor(),
 
                     FileUpload::make('hero_blog')
                         ->label('Blog')
-                        ->image()->directory('hero')->disk('public')->maxSize(3072)->imageEditor(),
+                        ->image()->directory('hero')->disk('public')
+                        ->maxSize(3072)->imageEditor(),
                 ])
                 ->columns(3),
         ]);
@@ -121,6 +139,9 @@ class HeroSettings extends Page implements HasForms
 
     public function save(): void
     {
+        // Filament v5 : récupérer l'état via getState()
+        $data = $this->form->getState();
+
         $keys = [
             'hero_home_1', 'hero_home_2', 'hero_home_3',
             'hero_offers', 'hero_destinations',
@@ -128,21 +149,35 @@ class HeroSettings extends Page implements HasForms
         ];
 
         foreach ($keys as $key) {
-            $value = $this->$key;
+            $value = $data[$key] ?? [];
+
+            // FileUpload retourne un tableau — extraire le chemin
             if (is_array($value)) {
-                $value = $value[0] ?? null;
+                $value = array_values($value)[0] ?? null;
             }
+
             if ($value) {
                 SiteSetting::updateOrCreate(
                     ['key' => $key],
-                    ['value' => $value, 'type' => 'image', 'description' => "Hero: {$key}"]
+                    [
+                        'value'       => $value,
+                        'type'        => 'image',
+                        'description' => "Hero image: {$key}",
+                    ]
                 );
+
+                // Invalider le cache de l'image hero
+                cache()->forget("hero_img_{$key}");
             }
         }
 
+        // Invalider les caches globaux
         cache()->forget('home.featured_offers');
         cache()->forget('home.stats');
 
-        Notification::make()->title('✅ Images sauvegardées !')->success()->send();
+        Notification::make()
+            ->title('✅ Images hero sauvegardées !')
+            ->success()
+            ->send();
     }
 }

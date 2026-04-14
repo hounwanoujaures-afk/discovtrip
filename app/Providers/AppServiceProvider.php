@@ -44,9 +44,15 @@ class AppServiceProvider extends ServiceProvider
     public static function heroImage(string $key, string $fallback = ''): ?string
     {
         try {
-            $setting = SiteSetting::where('key', $key)->value('value');
-            if ($setting) {
-                return \Illuminate\Support\Facades\Storage::disk('public')->url($setting);
+            // Cache 1 heure — évite une requête SQL à chaque rendu de page
+            $path = \Illuminate\Support\Facades\Cache::remember(
+                "hero_img_{$key}",
+                3600,
+                fn () => SiteSetting::where('key', $key)->value('value')
+            );
+
+            if ($path) {
+                return \Illuminate\Support\Facades\Storage::disk('public')->url($path);
             }
         } catch (\Throwable $e) {
             // DB pas encore disponible au build
