@@ -6,6 +6,7 @@ use App\Http\Controllers\Web\OfferController;
 use App\Http\Controllers\Web\BookingController;
 use App\Http\Controllers\Web\AccountController;
 use App\Http\Controllers\Web\DestinationsController;
+use App\Http\Controllers\Web\CountryController;
 use App\Http\Controllers\Web\CityController;
 use App\Http\Controllers\Web\AboutController;
 use App\Http\Controllers\Web\ContactController;
@@ -14,7 +15,6 @@ use App\Http\Controllers\Web\AuthController;
 use App\Http\Controllers\Web\WishlistController;
 use App\Http\Middleware\EnsureUserIsNotBanned;
 use App\Http\Controllers\Web\SitemapController;
-use App\Http\Controllers\Webhook\StripeWebhookController;
 use App\Http\Controllers\Web\PaymentController;
 use App\Http\Controllers\Web\CguController;
 use App\Http\Controllers\Web\PrivacyController;
@@ -33,8 +33,9 @@ Route::post('/newsletter/subscribe', [HomeController::class, 'subscribeNewslette
      ->middleware('throttle:5,1');
 
 // Destinations & offres
-Route::get('/destinations',           [DestinationsController::class, 'index'])->name('destinations');
-Route::get('/destinations/{slug}',    [CityController::class, 'show'])->name('destinations.city');
+Route::get('/destinations',                        [DestinationsController::class, 'index'])->name('destinations');
+Route::get('/destinations/country/{slug}',         [CountryController::class, 'show'])->name('destinations.country');
+Route::get('/destinations/{slug}',                 [CityController::class, 'show'])->name('destinations.city');
 Route::get('/offers',                 [OfferController::class, 'index'])->name('offers.index');
 Route::get('/offers/{slug}',          [OfferController::class, 'show'])->name('offers.show');
 Route::get('/offers/{slug}/reserver', [BookingController::class, 'create'])->name('bookings.create');
@@ -94,12 +95,21 @@ Route::middleware(['auth', EnsureUserIsNotBanned::class])
 // ══════════════════════════════════════════════════════
 
 Route::prefix('payment')->name('payment.')->group(function () {
-    Route::get('/{reference}',                  [PaymentController::class, 'show'])->name('show');
-    Route::get('/{reference}/fedapay',          [PaymentController::class, 'initFedapay'])->name('fedapay.init');
-    Route::get('/{reference}/fedapay/callback', [PaymentController::class, 'callbackFedapay'])->name('fedapay.callback');
-    Route::get('/{reference}/stripe',           [PaymentController::class, 'initStripe'])->name('stripe.init');
-    Route::get('/{reference}/stripe/callback',  [PaymentController::class, 'callbackStripe'])->name('stripe.callback');
+    // Page récapitulatif / sélection paiement
+    Route::get('/{reference}', [PaymentController::class, 'show'])->name('show');
+
+    // KKiaPay — callback navigateur après paiement
+    Route::get('/{reference}/kkiapay/callback', [PaymentController::class, 'callbackKkiapay'])
+         ->name('kkiapay.callback');
+
+    // Paiement sur place — confirmation sans paiement en ligne
+    Route::post('/{reference}/on-site', [PaymentController::class, 'confirmOnSite'])
+         ->name('on_site.confirm');
 });
+
+// Webhook KKiaPay — notification serveur asynchrone (exclu CSRF)
+Route::post('/webhooks/kkiapay', [PaymentController::class, 'webhookKkiapay'])
+     ->name('webhooks.kkiapay');
 
 // ══════════════════════════════════════════════════════
 // CHATBOT & WEBHOOKS
@@ -109,9 +119,7 @@ Route::post('/chatbot', [ChatbotController::class, 'chat'])
      ->name('chatbot.chat')
      ->middleware('throttle:30,1');
 
-// Webhook Stripe — exclu du CSRF via App\Http\Middleware\VerifyCsrfToken
-Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handle'])
-     ->name('webhooks.stripe');
+
 
 // ══════════════════════════════════════════════════════
 // AUTH (visiteurs non connectés seulement)

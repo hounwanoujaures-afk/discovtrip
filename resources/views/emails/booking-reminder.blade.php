@@ -16,7 +16,7 @@
 
     {{-- Body --}}
     <div class="email-body">
-        <p class="email-greeting">Bonjour {{ $booking->user->first_name }},</p>
+        <p class="email-greeting">Bonjour {{ $booking->guest_first_name ?? optional($booking->user)->first_name ?? "Voyageur" }},</p>
         <p class="email-p">
             Votre expérience est dans <strong>moins de 24h</strong> ! Nous vous rappelons
             les informations essentielles pour que tout se passe parfaitement.

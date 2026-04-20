@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use App\Models\Offer;
 use App\Models\SiteSetting;
@@ -31,7 +33,6 @@ class AppServiceProvider extends ServiceProvider
         Offer::observe(OfferObserver::class);
 
         // Directive Blade @heroImage('key', 'fallback')
-        // Retourne l'URL de l'image hero depuis la DB, avec fallback statique
         Blade::directive('heroImage', function (string $expression) {
             return "<?php echo App\\Providers\\AppServiceProvider::heroImage({$expression}); ?>";
         });
@@ -39,25 +40,34 @@ class AppServiceProvider extends ServiceProvider
 
     /**
      * Retourne l'URL d'une image hero gérée en admin.
-     * Retourne null si aucune image en DB et pas de fallback explicite.
+     *
+     * - Cache 1 heure (invalidé à la sauvegarde dans HeroSettings)
+     * - Compatible disk 'public' (local) ET disk 'cloudinary'
+     * - Si la valeur stockée est déjà une URL complète → retournée telle quelle
      */
     public static function heroImage(string $key, string $fallback = ''): ?string
     {
         try {
-            // Cache 1 heure — évite une requête SQL à chaque rendu de page
-            $path = \Illuminate\Support\Facades\Cache::remember(
-                "hero_img_{$key}",
-                3600,
-                fn () => SiteSetting::where('key', $key)->value('value')
-            );
+            $storedValue = Cache::remember('hero.' . $key, 3600, function () use ($key) {
+                return SiteSetting::where('key', $key)->value('value');
+            });
 
-            if ($path) {
-                return \Illuminate\Support\Facades\Storage::disk('public')->url($path);
+            if (! $storedValue) {
+                return $fallback ?: null;
             }
-        } catch (\Throwable $e) {
-            // DB pas encore disponible au build
-        }
 
-        return $fallback ?: null;
+            // Déjà une URL complète (Cloudinary CDN, S3…) — retourner tel quel
+            if (str_starts_with($storedValue, 'http://') || str_starts_with($storedValue, 'https://')) {
+                return $storedValue;
+            }
+
+            // Chemin relatif → générer l'URL via le disk par défaut
+            $disk = config('filesystems.default', 'public');
+            return Storage::disk($disk)->url($storedValue);
+
+        } catch (\Throwable $e) {
+            // DB pas encore disponible ou disk non configuré
+            return $fallback ?: null;
+        }
     }
 }

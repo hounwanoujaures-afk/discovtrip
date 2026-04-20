@@ -8,16 +8,21 @@ use Illuminate\Support\Facades\Storage;
 class OfferObserver
 {
     /**
-     * Appelé après la mise à jour d'une offre.
-     * Supprime les anciens fichiers remplacés ou retirés.
+     * Disk utilisé pour les images — même valeur que dans OfferResource.
+     * On lit la config pour rester cohérent quelle que soit l'env.
      */
+    private function disk(): string
+    {
+        return config('filesystems.default', 'public');
+    }
+
     public function updated(Offer $offer): void
     {
         // ── Cover image
         if ($offer->wasChanged('cover_image')) {
             $old = $offer->getOriginal('cover_image');
             if ($old && $old !== $offer->cover_image) {
-                Storage::disk('public')->delete($old);
+                $this->deleteFile($old);
             }
         }
 
@@ -26,7 +31,6 @@ class OfferObserver
             $oldGallery = (array) ($offer->getOriginal('gallery') ?? []);
             $newGallery = (array) ($offer->gallery ?? []);
 
-            // Décoder si stocké en JSON string
             if (count($oldGallery) === 1 && is_string($oldGallery[0])) {
                 $decoded = json_decode($oldGallery[0], true);
                 if (is_array($decoded)) $oldGallery = $decoded;
@@ -34,23 +38,36 @@ class OfferObserver
 
             $removed = array_diff($oldGallery, $newGallery);
             foreach ($removed as $file) {
-                if ($file) Storage::disk('public')->delete($file);
+                if ($file) $this->deleteFile($file);
             }
         }
     }
 
-    /**
-     * Appelé avant la suppression d'une offre.
-     * Supprime toutes les images liées.
-     */
     public function deleting(Offer $offer): void
     {
         if ($offer->cover_image) {
-            Storage::disk('public')->delete($offer->cover_image);
+            $this->deleteFile($offer->cover_image);
         }
 
         foreach ((array) ($offer->gallery ?? []) as $image) {
-            if ($image) Storage::disk('public')->delete($image);
+            if ($image) $this->deleteFile($image);
+        }
+    }
+
+    /**
+     * Supprime un fichier en gérant les URLs complètes (Cloudinary) et les chemins relatifs.
+     */
+    private function deleteFile(string $path): void
+    {
+        try {
+            // Les URLs complètes (Cloudinary) ne peuvent pas être supprimées
+            // via Storage::delete() avec un path relatif — on ignore silencieusement
+            if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+                return;
+            }
+            Storage::disk($this->disk())->delete($path);
+        } catch (\Throwable $e) {
+            // Ne pas faire crasher l'app si la suppression échoue
         }
     }
 }

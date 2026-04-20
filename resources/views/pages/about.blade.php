@@ -194,7 +194,7 @@
                 {{-- Photo ou initiales --}}
                 <div class="ab-team-avatar-wrap">
                     @if($member->photo)
-                        <img src="{{ asset('storage/'.$member->photo) }}"
+                        <img src="{{ mediaUrl($member->photo) }}"
                              alt="{{ $member->name }}"
                              class="ab-team-photo" loading="lazy">
                     @else

@@ -7,6 +7,7 @@ use App\Mail\BookingConfirmationMail;
 use App\Models\Booking;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
@@ -21,295 +22,157 @@ class PaymentController extends Controller
     {
         $booking = $this->resolveBooking($reference, $request);
 
-        // Déjà payé → page confirmation
         if ($booking->is_paid || $booking->payment_status === 'paid') {
             return redirect($this->bookingUrl($booking))
                 ->with('success', 'Cette réservation est déjà réglée. ✓');
         }
 
-        // Annulée → retour offre
         if (in_array($booking->status, ['cancelled_by_user', 'cancelled_by_partner'])) {
             return redirect()->route('offers.index')
                 ->with('error', 'Cette réservation a été annulée.');
         }
 
-        $fedapayEnabled = ! empty(config('services.fedapay.secret_key'));
-        $stripeEnabled  = ! empty(config('services.stripe.secret_key'));
+        $kkiapayEnabled = ! empty(config('services.kkiapay.public_key'));
 
-        return view('pages.bookings.payment', compact(
-            'booking',
-            'fedapayEnabled',
-            'stripeEnabled'
-        ));
+        return view('pages.bookings.payment', compact('booking', 'kkiapayEnabled'));
     }
 
     // ══════════════════════════════════════════════════════
-    // FEDAPAY — INITIATION
+    // KKIAPAY — CALLBACK (après paiement réussi)
+    // KKiaPay redirige ici avec ?transaction_id=xxx
+    // On vérifie côté serveur avant de confirmer.
     // ══════════════════════════════════════════════════════
 
-    public function initFedapay(Request $request, string $reference)
+    public function callbackKkiapay(Request $request, string $reference)
     {
-        $booking = $this->resolveBooking($reference, $request);
+        $transactionId = $request->query('transaction_id');
 
-        if (! config('services.fedapay.secret_key')) {
-            return back()->with('error', 'Le paiement Mobile Money n\'est pas encore disponible. Veuillez réessayer plus tard.');
+        if (! $transactionId) {
+            Log::warning('KKiaPay callback sans transaction_id', ['reference' => $reference]);
+            return redirect()->route('payment.show', $reference)
+                ->with('error', 'Transaction introuvable. Contactez-nous si vous avez été débité.');
         }
 
-        try {
-            \FedaPay\FedaPay::setApiKey(config('services.fedapay.secret_key'));
-            \FedaPay\FedaPay::setEnvironment(config('services.fedapay.env', 'sandbox'));
+        $booking = $this->resolveBooking($reference, $request);
 
-            $clientEmail = $booking->guest_email ?? optional($booking->user)->email ?? 'client@discovtrip.com';
-            $clientName  = $booking->guest_first_name
-                ? trim($booking->guest_first_name . ' ' . $booking->guest_last_name)
-                : optional($booking->user)?->name ?? 'Client DiscovTrip';
+        // Idempotent — si déjà confirmé, rediriger proprement
+        if ($booking->is_paid) {
+            return redirect($this->bookingUrl($booking))
+                ->with('success', '🎉 Votre réservation est confirmée.');
+        }
 
-            $callbackUrl = is_null($booking->user_id)
-                ? URL::signedRoute('payment.fedapay.callback', ['reference' => $reference])
-                : route('payment.fedapay.callback', $reference);
-
-            $transaction = \FedaPay\Transaction::create([
-                'description' => 'DiscovTrip — ' . $booking->offer->title . ' (' . $booking->reference . ')',
-                'amount'      => (int) $booking->total_price,
-                'currency'    => ['iso' => 'XOF'],
-                'callback_url'=> $callbackUrl,
-                'customer'    => [
-                    'firstname' => explode(' ', $clientName)[0],
-                    'lastname'  => implode(' ', array_slice(explode(' ', $clientName), 1)) ?: 'Client',
-                    'email'     => $clientEmail,
-                    'phone_number' => [
-                        'number'  => $booking->guest_phone ?? '22900000000',
-                        'country' => 'BJ',
-                    ],
-                ],
+        // Vérification serveur à serveur — indispensable pour éviter la fraude
+        if (! $this->verifyKkiapayTransaction($transactionId)) {
+            Log::error('KKiaPay : transaction non vérifiée', [
+                'reference'      => $reference,
+                'transaction_id' => $transactionId,
             ]);
+            return redirect()->route('payment.show', $reference)
+                ->with('error', 'Paiement non vérifié. Contactez-nous si vous avez été débité.');
+        }
 
-            $token = $transaction->generateToken();
+        $booking->update([
+            'payment_status'         => 'paid',
+            'payment_method'         => 'kkiapay',
+            'payment_transaction_id' => $transactionId,
+            'payment_reference'      => $transactionId,
+            'is_paid'                => true,
+            'paid_at'                => Carbon::now(),
+            'status'                 => 'confirmed',
+        ]);
 
-            // Sauvegarder la référence transaction
+        $this->sendConfirmationEmail($booking);
+
+        Log::info('KKiaPay : paiement confirmé', [
+            'reference'      => $reference,
+            'transaction_id' => $transactionId,
+        ]);
+
+        return redirect($this->bookingUrl($booking))
+            ->with('success', '🎉 Paiement reçu ! Votre réservation est confirmée.');
+    }
+
+    // ══════════════════════════════════════════════════════
+    // KKIAPAY — WEBHOOK (notification serveur asynchrone)
+    // Déclenché par KKiaPay même si l'utilisateur ferme le
+    // navigateur après paiement. Filet de sécurité.
+    // ══════════════════════════════════════════════════════
+
+    public function webhookKkiapay(Request $request)
+    {
+        $payload = $request->all();
+
+        Log::info('KKiaPay webhook reçu', ['payload' => $payload]);
+
+        $transactionId = $payload['transactionId'] ?? null;
+        $status        = $payload['status']        ?? null;
+
+        if (! $transactionId) {
+            return response()->json(['error' => 'Missing transactionId'], 400);
+        }
+
+        // KKiaPay envoie "SUCCESS" ou "FAILED"
+        if ($status !== 'SUCCESS') {
+            return response()->json(['status' => 'ignored']);
+        }
+
+        // Retrouver la réservation via le transaction_id
+        $booking = Booking::where('payment_transaction_id', $transactionId)
+            ->orWhere('payment_reference', $transactionId)
+            ->first();
+
+        if (! $booking) {
+            // Peut arriver si le callback est passé avant le webhook
+            Log::warning('KKiaPay webhook : réservation introuvable', ['transactionId' => $transactionId]);
+            return response()->json(['status' => 'booking_not_found']);
+        }
+
+        if (! $booking->is_paid) {
             $booking->update([
-                'payment_method'    => 'fedapay',
-                'payment_status'    => 'pending',
-                'payment_reference' => $transaction->id,
+                'payment_status'         => 'paid',
+                'payment_method'         => 'kkiapay',
+                'payment_transaction_id' => $transactionId,
+                'is_paid'                => true,
+                'paid_at'                => Carbon::now(),
+                'status'                 => 'confirmed',
             ]);
 
-            return redirect($token->url);
+            $booking->load(['offer.city', 'tier', 'user']);
+            $this->sendConfirmationEmail($booking);
 
-        } catch (\Exception $e) {
-            Log::error('FedaPay init error: ' . $e->getMessage(), [
-                'reference' => $reference,
-                'trace'     => $e->getTraceAsString(),
-            ]);
-
-            return back()->with('error', 'Erreur lors de l\'initialisation du paiement. Veuillez réessayer.');
-        }
-    }
-
-    // ══════════════════════════════════════════════════════
-    // FEDAPAY — CALLBACK
-    // ══════════════════════════════════════════════════════
-
-    public function callbackFedapay(Request $request, string $reference)
-    {
-        $booking = $this->resolveBooking($reference, $request);
-
-        try {
-            \FedaPay\FedaPay::setApiKey(config('services.fedapay.secret_key'));
-            \FedaPay\FedaPay::setEnvironment(config('services.fedapay.env', 'sandbox'));
-
-            $transactionId = $request->query('id') ?? $booking->payment_reference;
-            $transaction   = \FedaPay\Transaction::retrieve($transactionId);
-
-            if ($transaction->status === 'approved') {
-                $booking->update([
-                    'payment_status'         => 'paid',
-                    'payment_transaction_id' => $transaction->id,
-                    'is_paid'                => true,
-                    'paid_at'                => Carbon::now(),
-                    'status'                 => 'confirmed',
-                ]);
-
-                $this->sendConfirmationEmail($booking);
-
-                return redirect($this->bookingUrl($booking))
-                    ->with('success', '🎉 Paiement reçu ! Votre réservation est confirmée.');
-            }
-
-            if ($transaction->status === 'declined') {
-                $booking->update(['payment_status' => 'failed']);
-                return redirect(route('payment.show', $reference))
-                    ->with('error', 'Paiement refusé. Veuillez réessayer.');
-            }
-
-            // Statut inconnu ou en attente
-            return redirect($this->bookingUrl($booking))
-                ->with('info', 'Paiement en cours de traitement. Vous recevrez un email de confirmation.');
-
-        } catch (\Exception $e) {
-            Log::error('FedaPay callback error: ' . $e->getMessage(), ['reference' => $reference]);
-            return redirect($this->bookingUrl($booking))
-                ->with('error', 'Erreur lors de la vérification du paiement. Contactez-nous si le montant a été débité.');
-        }
-    }
-
-    // ══════════════════════════════════════════════════════
-    // STRIPE — INITIATION
-    // ══════════════════════════════════════════════════════
-
-    public function initStripe(Request $request, string $reference)
-    {
-        $booking = $this->resolveBooking($reference, $request);
-
-        if (! config('services.stripe.secret_key')) {
-            return back()->with('error', 'Le paiement par carte n\'est pas encore disponible. Veuillez réessayer plus tard.');
-        }
-
-        try {
-            \Stripe\Stripe::setApiKey(config('services.stripe.secret_key'));
-
-            $clientEmail = $booking->guest_email ?? optional($booking->user)->email;
-
-            // Les guests reçoivent des URLs signées — aucun email en clair
-            $stripeCallbackBase = is_null($booking->user_id)
-                ? URL::signedRoute('payment.stripe.callback', ['reference' => $reference])
-                : route('payment.stripe.callback', $reference);
-
-            $successUrl = $stripeCallbackBase
-                . (str_contains($stripeCallbackBase, '?') ? '&' : '?')
-                . 'session_id={CHECKOUT_SESSION_ID}';
-
-            $cancelUrl = is_null($booking->user_id)
-                ? URL::signedRoute('payment.show', ['reference' => $reference])
-                : route('payment.show', $reference);
-
-            $sessionData = [
-                'payment_method_types' => ['card'],
-                'mode'                 => 'payment',
-                'success_url'          => $successUrl,
-                'cancel_url'           => $cancelUrl,
-                'metadata'             => [
-                    'booking_reference' => $booking->reference,
-                    'offer_id'          => $booking->offer_id,
-                ],
-                'line_items' => [[
-                    'price_data' => [
-                        'currency'     => 'eur',
-                        'unit_amount'  => (int) round(($booking->total_price / 655.957) * 100),
-                        'product_data' => [
-                            'name'        => 'DiscovTrip — ' . $booking->offer->title,
-                            'description' => $booking->participants . ' participant(s) · ' . Carbon::parse($booking->booking_date)->locale('fr')->isoFormat('D MMMM YYYY'),
-                        ],
-                    ],
-                    'quantity' => 1,
-                ]],
-            ];
-
-            if ($clientEmail) {
-                $sessionData['customer_email'] = $clientEmail;
-            }
-
-            $session = \Stripe\Checkout\Session::create($sessionData);
-
-            $booking->update([
-                'payment_method'    => 'stripe',
-                'payment_status'    => 'pending',
-                'payment_reference' => $session->id,
-            ]);
-
-            return redirect($session->url);
-
-        } catch (\Exception $e) {
-            Log::error('Stripe init error: ' . $e->getMessage(), ['reference' => $reference]);
-            return back()->with('error', 'Erreur lors de l\'initialisation du paiement. Veuillez réessayer.');
-        }
-    }
-
-    // ══════════════════════════════════════════════════════
-    // STRIPE — CALLBACK
-    // ══════════════════════════════════════════════════════
-
-    public function callbackStripe(Request $request, string $reference)
-    {
-        $booking = $this->resolveBooking($reference, $request);
-
-        try {
-            \Stripe\Stripe::setApiKey(config('services.stripe.secret_key'));
-
-            $sessionId = $request->query('session_id');
-            if (! $sessionId) {
-                return redirect($this->bookingUrl($booking))
-                    ->with('error', 'Session de paiement invalide.');
-            }
-
-            $session = \Stripe\Checkout\Session::retrieve($sessionId);
-
-            if ($session->payment_status === 'paid') {
-                $booking->update([
-                    'payment_status'         => 'paid',
-                    'payment_transaction_id' => $session->payment_intent,
-                    'is_paid'                => true,
-                    'paid_at'                => Carbon::now(),
-                    'status'                 => 'confirmed',
-                ]);
-
-                $this->sendConfirmationEmail($booking);
-
-                return redirect($this->bookingUrl($booking))
-                    ->with('success', '🎉 Paiement reçu ! Votre réservation est confirmée.');
-            }
-
-            return redirect(route('payment.show', $reference))
-                ->with('error', 'Paiement non finalisé. Veuillez réessayer.');
-
-        } catch (\Exception $e) {
-            Log::error('Stripe callback error: ' . $e->getMessage(), ['reference' => $reference]);
-            return redirect($this->bookingUrl($booking))
-                ->with('error', 'Erreur de vérification du paiement. Contactez-nous si le montant a été débité.');
-        }
-    }
-
-    // ══════════════════════════════════════════════════════
-    // STRIPE — WEBHOOK (événements asynchrones)
-    // ══════════════════════════════════════════════════════
-
-    public function webhookStripe(Request $request)
-    {
-        $payload   = $request->getContent();
-        $sigHeader = $request->header('Stripe-Signature');
-        $secret    = config('services.stripe.webhook_secret');
-
-        try {
-            $event = \Stripe\Webhook::constructEvent($payload, $sigHeader, $secret);
-        } catch (\Stripe\Exception\SignatureVerificationException $e) {
-            Log::warning('Stripe webhook signature invalid.');
-            return response()->json(['error' => 'Invalid signature'], 400);
-        } catch (\Exception $e) {
-            Log::error('Stripe webhook error: ' . $e->getMessage());
-            return response()->json(['error' => 'Webhook error'], 400);
-        }
-
-        if ($event->type === 'checkout.session.completed') {
-            $session  = $event->data->object;
-            $reference = $session->metadata->booking_reference ?? null;
-
-            if ($reference) {
-                $booking = Booking::where('reference', $reference)->first();
-                if ($booking && ! $booking->is_paid) {
-                    $booking->update([
-                        'payment_status'         => 'paid',
-                        'payment_transaction_id' => $session->payment_intent,
-                        'is_paid'                => true,
-                        'paid_at'                => Carbon::now(),
-                        'status'                 => 'confirmed',
-                    ]);
-
-                    $booking->load(['offer.city', 'tier', 'user']);
-                    $this->sendConfirmationEmail($booking);
-                }
-            }
+            Log::info('KKiaPay webhook : réservation confirmée via webhook', ['reference' => $booking->reference]);
         }
 
         return response()->json(['status' => 'ok']);
+    }
+
+    // ══════════════════════════════════════════════════════
+    // PAIEMENT SUR PLACE — confirmation sans paiement en ligne
+    // ══════════════════════════════════════════════════════
+
+    public function confirmOnSite(Request $request, string $reference)
+    {
+        $booking = $this->resolveBooking($reference, $request);
+
+        if ($booking->is_paid) {
+            return redirect($this->bookingUrl($booking))
+                ->with('success', 'Réservation déjà confirmée.');
+        }
+
+        $offerPayMode = $booking->offer->payment_mode ?? 'both';
+        if (! in_array($offerPayMode, ['on_site', 'both'])) {
+            return redirect()->route('payment.show', $reference)
+                ->with('error', 'Le paiement sur place n\'est pas disponible pour cette offre.');
+        }
+
+        $booking->update([
+            'payment_method' => 'on_site',
+            'payment_status' => 'pending',
+            'status'         => 'pending',
+        ]);
+
+        return redirect($this->bookingUrl($booking))
+            ->with('success', 'Réservation enregistrée ! Vous règlerez sur place le jour J.');
     }
 
     // ══════════════════════════════════════════════════════
@@ -317,7 +180,42 @@ class PaymentController extends Controller
     // ══════════════════════════════════════════════════════
 
     /**
-     * Résoudre la réservation — fonctionne pour les connectés ET les invités
+     * Vérifie une transaction KKiaPay côté serveur (API REST).
+     * Retourne true uniquement si le statut est SUCCESS.
+     */
+    private function verifyKkiapayTransaction(string $transactionId): bool
+    {
+        try {
+            $isSandbox = config('services.kkiapay.sandbox', true);
+            $baseUrl   = $isSandbox
+                ? 'https://sandbox-api.kkiapay.me'
+                : 'https://api.kkiapay.me';
+
+            $response = Http::timeout(10)
+                ->withHeaders([
+                    'x-private-key' => config('services.kkiapay.private_key'),
+                ])
+                ->get("{$baseUrl}/api/v1/transactions/{$transactionId}/status");
+
+            if (! $response->successful()) {
+                Log::warning('KKiaPay verify : réponse API non-2xx', [
+                    'status' => $response->status(),
+                    'body'   => $response->body(),
+                ]);
+                return false;
+            }
+
+            $data = $response->json();
+            return ($data['status'] ?? '') === 'SUCCESS';
+
+        } catch (\Throwable $e) {
+            Log::error('KKiaPay verify exception : ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Résoudre la réservation — fonctionne pour les connectés ET les invités.
      */
     private function resolveBooking(string $reference, Request $request): Booking
     {
@@ -328,19 +226,15 @@ class PaymentController extends Controller
             return $query->where('user_id', auth()->id())->firstOrFail();
         }
 
-        // Guest : l'accès est autorisé uniquement si l'URL est signée
         if ($request->hasValidSignature()) {
             return $query->whereNull('user_id')->firstOrFail();
         }
 
-        // Callbacks payment (FedaPay/Stripe) — le reference seul suffit côté serveur
-        // car la route callback n'est pas exposée publiquement dans les emails
         return $query->firstOrFail();
     }
 
     /**
-     * URL de confirmation après paiement.
-     * Guests : URL signée (HMAC) — aucun email en clair dans l'URL.
+     * URL de confirmation — signée pour les invités.
      */
     private function bookingUrl(Booking $booking): string
     {
@@ -351,7 +245,7 @@ class PaymentController extends Controller
     }
 
     /**
-     * Envoyer l'email de confirmation
+     * Envoyer l'email de confirmation de réservation.
      */
     private function sendConfirmationEmail(Booking $booking): void
     {
@@ -360,8 +254,8 @@ class PaymentController extends Controller
 
         try {
             Mail::to($email)->send(new BookingConfirmationMail($booking));
-        } catch (\Exception $e) {
-            Log::warning('Payment confirmation email failed: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            Log::warning('Email confirmation paiement échoué : ' . $e->getMessage());
         }
     }
 }

@@ -1,3 +1,16 @@
+@php
+    // Résolution sécurisée — fonctionne pour membres ET invités
+    $clientName = $clientName
+        ?? ($booking->guest_first_name
+            ?? optional($booking->user)->first_name
+            ?? optional($booking->user)->name
+            ?? 'Voyageur');
+    $bookingUrl = $bookingUrl
+        ?? (is_null($booking->user_id)
+            ? \Illuminate\Support\Facades\URL::signedRoute('bookings.show', ['reference' => $booking->reference])
+            : route('bookings.show', $booking->reference));
+@endphp
+
 <x-emails.layout
     title="Réservation confirmée #{{ $booking->reference }}"
     preheader="✅ Votre réservation {{ $booking->offer->title }} est confirmée ! Rendez-vous le {{ $booking->booking_date->locale('fr')->isoFormat('D MMMM YYYY') }}.">
@@ -15,7 +28,7 @@
 
     {{-- Body --}}
     <div class="email-body">
-        <p class="email-greeting">Bonjour {{ $booking->user->first_name }},</p>
+        <p class="email-greeting">Bonjour {{ $clientName }},</p>
         <p class="email-p">
             Votre réservation a bien été enregistrée et confirmée.
             Voici le récapitulatif de votre expérience :
@@ -74,7 +87,7 @@
         </div>
 
         <div class="email-cta-wrap">
-            <a href="{{ route('account.bookings') }}" class="email-cta">
+            <a href="{{ $bookingUrl }}" class="email-cta">
                 📋 Voir ma réservation
             </a>
         </div>
@@ -83,7 +96,7 @@
 
         <p class="email-p" style="font-size:13px; color:#9a8a78;">
             Besoin de modifier ou d'annuler votre réservation ?
-            Connectez-vous à votre <a href="{{ route('account.bookings') }}" style="color:#c49a0d;font-weight:600;">espace client</a>
+            Connectez-vous à votre <a href="{{ $bookingUrl }}" style="color:#c49a0d;font-weight:600;">voir ma réservation</a>
             ou <a href="{{ route('contact') }}" style="color:#c49a0d;font-weight:600;">contactez-nous</a>.
         </p>
     </div>

@@ -3,129 +3,126 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\City;
-use App\Models\Offer;
 use App\Models\BlogPost;
+use App\Models\City;
+use App\Models\Country;
+use App\Models\Offer;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 
 class SitemapController extends Controller
 {
     /**
-     * Génère et retourne le sitemap XML principal.
-     * Mis en cache 12h pour ne pas surcharger la DB.
+     * Sitemap XML principal — mis en cache 6h.
+     * Invalidé automatiquement si tu veux via :
+     *   Cache::forget('sitemap_xml');
      */
     public function index(): Response
     {
-        $xml = Cache::remember('sitemap_xml', 43200, function () {
-            return $this->buildXml();
-        });
+        $xml = Cache::remember('sitemap_xml', 21600, fn() => $this->buildXml());
 
         return response($xml, 200, [
-            'Content-Type' => 'application/xml; charset=UTF-8',
+            'Content-Type'  => 'application/xml; charset=UTF-8',
+            'Cache-Control' => 'public, max-age=21600',
         ]);
     }
 
     private function buildXml(): string
     {
-        $baseUrl = rtrim(config('app.url'), '/');
-        $now     = now()->toAtomString();
-
+        $base = rtrim(config('app.url'), '/');
+        $now  = now()->toAtomString();
         $urls = [];
 
-        // ── Pages statiques ─────────────────────────────────
-        $staticPages = [
-            ['loc' => '/',                      'priority' => '1.0', 'changefreq' => 'daily'],
-            ['loc' => '/destinations',          'priority' => '0.9', 'changefreq' => 'weekly'],
-            ['loc' => '/offers',                'priority' => '0.9', 'changefreq' => 'daily'],
-            ['loc' => '/about',                 'priority' => '0.6', 'changefreq' => 'monthly'],
-            ['loc' => '/contact',               'priority' => '0.6', 'changefreq' => 'monthly'],
-            ['loc' => '/faq',                   'priority' => '0.7', 'changefreq' => 'monthly'],
-            ['loc' => '/conditions-utilisation','priority' => '0.3', 'changefreq' => 'yearly'],
-            ['loc' => '/confidentialite',       'priority' => '0.3', 'changefreq' => 'yearly'],
-            ['loc' => '/annulation-gratuite',   'priority' => '0.5', 'changefreq' => 'yearly'],
-        ];
-
-        foreach ($staticPages as $page) {
-            $urls[] = [
-                'loc'        => $baseUrl . $page['loc'],
-                'lastmod'    => $now,
-                'changefreq' => $page['changefreq'],
-                'priority'   => $page['priority'],
-            ];
+        // ── Pages statiques ────────────────────────────────
+        foreach ([
+            ['/',                       '1.0', 'daily'],
+            ['/destinations',           '0.9', 'weekly'],
+            ['/offers',                 '0.9', 'daily'],
+            ['/blog',                   '0.8', 'weekly'],
+            ['/about',                  '0.6', 'monthly'],
+            ['/contact',                '0.6', 'monthly'],
+            ['/faq',                    '0.7', 'monthly'],
+            ['/conditions-utilisation', '0.3', 'yearly'],
+            ['/confidentialite',        '0.3', 'yearly'],
+            ['/annulation-gratuite',    '0.5', 'yearly'],
+        ] as [$loc, $pri, $freq]) {
+            $urls[] = ['loc' => $base.$loc, 'lastmod' => $now, 'changefreq' => $freq, 'priority' => $pri];
         }
 
-        // ── Destinations (villes actives) ────────────────────
-        $cities = City::where('is_active', true)
+        // ── Pays actifs (mode multi-pays futur) ────────────
+        Country::active()
+            ->has('activeCities')
+            ->select(['slug', 'updated_at'])
+            ->orderBy('name')
+            ->get()
+            ->each(function ($country) use (&$urls, $base) {
+                $urls[] = [
+                    'loc'        => $base . '/destinations/country/' . $country->slug,
+                    'lastmod'    => $country->updated_at?->toAtomString() ?? now()->toAtomString(),
+                    'changefreq' => 'weekly',
+                    'priority'   => '0.85',
+                ];
+            });
+
+        // ── Villes actives ─────────────────────────────────
+        City::where('is_active', true)
             ->whereNotNull('slug')
             ->select(['slug', 'updated_at'])
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->each(function ($city) use (&$urls, $base) {
+                $urls[] = [
+                    'loc'        => $base . '/destinations/' . $city->slug,
+                    'lastmod'    => $city->updated_at?->toAtomString() ?? now()->toAtomString(),
+                    'changefreq' => 'weekly',
+                    'priority'   => '0.8',
+                ];
+            });
 
-        foreach ($cities as $city) {
-            $urls[] = [
-                'loc'        => $baseUrl . '/destinations/' . $city->slug,
-                'lastmod'    => $city->updated_at?->toAtomString() ?? $now,
-                'changefreq' => 'weekly',
-                'priority'   => '0.8',
-            ];
-        }
-
-        // ── Offres publiées ──────────────────────────────────
-        $offers = Offer::where('status', 'published')
+        // ── Offres publiées ────────────────────────────────
+        Offer::where('status', 'published')
             ->whereNull('deleted_at')
             ->whereNotNull('slug')
             ->select(['slug', 'updated_at'])
-            ->orderByDesc('published_at')
-            ->get();
+            ->orderByDesc('updated_at')
+            ->get()
+            ->each(function ($offer) use (&$urls, $base) {
+                $urls[] = [
+                    'loc'        => $base . '/offers/' . $offer->slug,
+                    'lastmod'    => $offer->updated_at?->toAtomString() ?? now()->toAtomString(),
+                    'changefreq' => 'weekly',
+                    'priority'   => '0.9',
+                ];
+            });
 
-        foreach ($offers as $offer) {
-            $urls[] = [
-                'loc'        => $baseUrl . '/offers/' . $offer->slug,
-                'lastmod'    => $offer->updated_at?->toAtomString() ?? $now,
-                'changefreq' => 'weekly',
-                'priority'   => '0.9',
-            ];
-        }
-
-
-        // ── Articles de blog publiés ─────────────────────
-        $blogPosts = BlogPost::published()
+        // ── Articles de blog publiés ───────────────────────
+        BlogPost::published()
             ->whereNotNull('slug')
             ->select(['slug', 'updated_at'])
             ->orderByDesc('published_at')
-            ->get();
+            ->get()
+            ->each(function ($post) use (&$urls, $base) {
+                $urls[] = [
+                    'loc'        => $base . '/blog/' . $post->slug,
+                    'lastmod'    => $post->updated_at?->toAtomString() ?? now()->toAtomString(),
+                    'changefreq' => 'monthly',
+                    'priority'   => '0.7',
+                ];
+            });
 
-        foreach ($blogPosts as $post) {
-            $urls[] = [
-                'loc'        => $baseUrl . '/blog/' . $post->slug,
-                'lastmod'    => $post->updated_at?->toAtomString() ?? $now,
-                'changefreq' => 'monthly',
-                'priority'   => '0.7',
-            ];
-        }
-
-        // ── Ajout /blog index ──────────────────────────────
-        array_splice($urls, 3, 0, [[
-            'loc'        => $baseUrl . '/blog',
-            'lastmod'    => $now,
-            'changefreq' => 'weekly',
-            'priority'   => '0.8',
-        ]]);
-
-        // ── Construction XML ─────────────────────────────────
+        // ── Génération XML ──────────────────────────────────
         $xml  = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' . "\n";
         $xml .= '        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"' . "\n";
         $xml .= '        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9' . "\n";
         $xml .= '        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">' . "\n";
 
-        foreach ($urls as $url) {
+        foreach ($urls as $u) {
             $xml .= "  <url>\n";
-            $xml .= "    <loc>" . htmlspecialchars($url['loc'], ENT_XML1) . "</loc>\n";
-            $xml .= "    <lastmod>" . $url['lastmod'] . "</lastmod>\n";
-            $xml .= "    <changefreq>" . $url['changefreq'] . "</changefreq>\n";
-            $xml .= "    <priority>" . $url['priority'] . "</priority>\n";
+            $xml .= "    <loc>"        . htmlspecialchars($u['loc'], ENT_XML1)  . "</loc>\n";
+            $xml .= "    <lastmod>"    . $u['lastmod']                          . "</lastmod>\n";
+            $xml .= "    <changefreq>" . $u['changefreq']                       . "</changefreq>\n";
+            $xml .= "    <priority>"   . $u['priority']                         . "</priority>\n";
             $xml .= "  </url>\n";
         }
 

@@ -8,39 +8,88 @@
 @section('description', Str::limit(strip_tags($offer->description), 155))
 @section('og_title', $offer->title . ' — DiscovTrip')
 @section('og_description', Str::limit(strip_tags($offer->description), 155))
-@section('og_image', $offer->cover_image ? asset('storage/'.$offer->cover_image) : asset('images/og-default.jpg'))
+@section('og_image', $offer->cover_image ? mediaUrl($offer->cover_image) : asset('images/og-default.jpg'))
 
 @push('jsonld')
 <script type="application/ld+json">
 {
     "@@context": "https://schema.org",
-    "@@type": "TouristAttraction",
-    "name": "{{ $offer->title }}",
-    "description": "{{ Str::limit(strip_tags($offer->description), 200) }}",
-    "url": "{{ route('offers.show', $offer->slug) }}",
-    "image": "{{ $offer->cover_image ? asset('storage/'.$offer->cover_image) : asset('images/og-default.jpg') }}",
-    "touristType": "{{ $offer->category_label }}",
-    "address": {
-        "@@type": "PostalAddress",
-        "addressLocality": "{{ $offer->city->name ?? 'Bénin' }}",
-        "addressCountry": "BJ"
-    },
-    "offers": {
-        "@@type": "Offer",
-        "price": "{{ $offer->effective_price }}",
-        "priceCurrency": "XOF",
-        "availability": "https://schema.org/InStock",
-        "url": "{{ route('offers.show', $offer->slug) }}"
-    }
-    @if($offer->average_rating > 0 && ($offer->reviews_count ?? 0) >= 3)
-    ,"aggregateRating": {
-        "@@type": "AggregateRating",
-        "ratingValue": "{{ $offer->average_rating }}",
-        "reviewCount": "{{ $offer->reviews_count }}",
-        "bestRating": "5",
-        "worstRating": "1"
-    }
-    @endif
+    "@@graph": [
+        {
+            "@@type": "TouristAttraction",
+            "name": "{{ addslashes($offer->title) }}",
+            "description": "{{ addslashes(Str::limit(strip_tags($offer->description), 200)) }}",
+            "url": "{{ route('offers.show', $offer->slug) }}",
+            "image": "{{ $offer->cover_image ? mediaUrl($offer->cover_image) : asset('images/og-default.jpg') }}",
+            "touristType": "{{ $offer->category_label ?? 'Culturel' }}",
+            "address": {
+                "@@type": "PostalAddress",
+                "addressLocality": "{{ $offer->city->name ?? 'Bénin' }}",
+                "addressCountry": "BJ"
+            },
+            "offers": {
+                "@@type": "Offer",
+                "price": "{{ $offer->effective_price }}",
+                "priceCurrency": "XOF",
+                "availability": "https://schema.org/InStock",
+                "url": "{{ route('offers.show', $offer->slug) }}",
+                "seller": {
+                    "@@type": "Organization",
+                    "name": "DiscovTrip"
+                }
+            }
+            @if($offer->average_rating > 0 && ($offer->reviews_count ?? 0) >= 1)
+            ,"aggregateRating": {
+                "@@type": "AggregateRating",
+                "ratingValue": "{{ number_format($offer->average_rating, 1) }}",
+                "reviewCount": "{{ $offer->reviews_count }}",
+                "bestRating": "5",
+                "worstRating": "1"
+            }
+            @endif
+            @if($offer->duration_hours ?? null)
+            ,"duration": "PT{{ $offer->duration_hours }}H"
+            @endif
+        },
+        {
+            "@@type": "BreadcrumbList",
+            "itemListElement": [
+                {
+                    "@@type": "ListItem",
+                    "position": 1,
+                    "name": "Accueil",
+                    "item": "{{ url('/') }}"
+                },
+                {
+                    "@@type": "ListItem",
+                    "position": 2,
+                    "name": "Expériences",
+                    "item": "{{ route('offers.index') }}"
+                },
+                @if($offer->city)
+                {
+                    "@@type": "ListItem",
+                    "position": 3,
+                    "name": "{{ $offer->city->name }}",
+                    "item": "{{ route('destinations.city', $offer->city->slug) }}"
+                },
+                {
+                    "@@type": "ListItem",
+                    "position": 4,
+                    "name": "{{ addslashes($offer->title) }}",
+                    "item": "{{ route('offers.show', $offer->slug) }}"
+                }
+                @else
+                {
+                    "@@type": "ListItem",
+                    "position": 3,
+                    "name": "{{ addslashes($offer->title) }}",
+                    "item": "{{ route('offers.show', $offer->slug) }}"
+                }
+                @endif
+            ]
+        }
+    ]
 }
 </script>
 @endpush
@@ -756,10 +805,54 @@
 @endsection
 
 {{-- ══ SCRIPTS ═════════════════════════════════════════ --}}
+{{-- ══ BARRE STICKY MOBILE — visible uniquement < 1024px ══ --}}
+{{-- Affiche le prix + bouton Réserver en bas d'écran sur mobile --}}
+<div id="osd-mobile-bar" aria-hidden="true" style="
+    display:none;
+    position:fixed;bottom:0;left:0;right:0;z-index:800;
+    background:#fff;
+    border-top:1px solid rgba(28,27,22,.1);
+    padding:12px 20px 16px;
+    padding-bottom:calc(12px + env(safe-area-inset-bottom));
+    box-shadow:0 -4px 24px rgba(0,0,0,.12);
+    align-items:center;gap:12px;
+">
+    <div style="flex:1;min-width:0">
+        <div style="font-size:11px;color:#7A7868;text-transform:uppercase;letter-spacing:.06em">À partir de</div>
+        <div style="font-size:18px;font-weight:700;color:#0D3822;line-height:1.2">
+            {{ number_format($offer->effective_price, 0, ',', ' ') }}
+            <span style="font-size:13px;font-weight:500">FCFA</span>
+        </div>
+    </div>
+    <a href="{{ route('bookings.create', $offer->slug) }}"
+       style="
+           flex-shrink:0;
+           display:inline-flex;align-items:center;gap:8px;
+           padding:13px 22px;border-radius:100px;
+           background:#D4A20F;color:#1A1A17;
+           font-weight:700;font-size:14px;
+           text-decoration:none;
+           box-shadow:0 4px 16px rgba(212,162,15,.4);
+           white-space:nowrap;
+       ">
+        <i class="fas fa-calendar-check" aria-hidden="true"></i>
+        Réserver
+    </a>
+</div>
+<style>
+@media (max-width: 1023px) {
+    #osd-mobile-bar { display: flex !important; }
+    /* Espace en bas pour éviter que la barre cache le contenu */
+    .osd-page { padding-bottom: 90px; }
+}
+</style>
+
 @push('scripts')
 <script>
 (function () {
     'use strict';
+
+
 
     // ── État ────────────────────────────────────────────────
     var _basePrice = {{ (float) $initPrice }};
@@ -944,5 +1037,18 @@
     });
 
 }());
+
+// Mobile sticky bar — hide when booking card is visible
+(function() {
+    var mobileBar  = document.getElementById('osd-mobile-bar');
+    var bookingCard = document.querySelector('.osd-booking-card');
+    if (!mobileBar || !bookingCard || !('IntersectionObserver' in window)) return;
+
+    new IntersectionObserver(function(entries) {
+        entries.forEach(function(e) {
+            mobileBar.style.display = e.isIntersecting ? 'none' : '';
+        });
+    }, { threshold: 0.1 }).observe(bookingCard);
+})();
 </script>
 @endpush

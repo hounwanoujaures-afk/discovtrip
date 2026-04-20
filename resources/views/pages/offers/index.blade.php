@@ -112,7 +112,7 @@ $wishlistIds = Auth::check()
             {{-- Photo principale --}}
             <div class="opl-hero-photo-main">
                 @if(isset($heroImageMain) && $heroImageMain)
-                    <img src="{{ asset('storage/'.$heroImageMain) }}"
+                    <img src="{{ mediaUrl($heroImageMain) }}"
                          alt="Expérience au Bénin"
                          loading="eager" width="480" height="640">
                 @else
@@ -126,7 +126,7 @@ $wishlistIds = Auth::check()
             {{-- Photo secondaire --}}
             <div class="opl-hero-photo-secondary">
                 @if(isset($heroImageSecondary) && $heroImageSecondary)
-                    <img src="{{ asset('storage/'.$heroImageSecondary) }}"
+                    <img src="{{ mediaUrl($heroImageSecondary) }}"
                          alt="Découverte au Bénin"
                          loading="eager" width="280" height="200">
                 @else
@@ -394,7 +394,7 @@ $wishlistIds = Auth::check()
                        class="opl-promo-card-img"
                        tabindex="-1" aria-hidden="true">
                         @if($offer->cover_image)
-                            <img src="{{ asset('storage/'.$offer->cover_image) }}"
+                            <img src="{{ mediaUrl($offer->cover_image) }}"
                                  alt="{{ $offer->title }}"
                                  loading="eager" width="600" height="450">
                         @else
@@ -539,7 +539,7 @@ $wishlistIds = Auth::check()
                    tabindex="-1" aria-hidden="true"
                    @if($isSoldOut) style="cursor:default" @endif>
                     @if($offer->cover_image)
-                        <img src="{{ asset('storage/'.$offer->cover_image) }}"
+                        <img src="{{ mediaUrl($offer->cover_image) }}"
                              alt="{{ $offer->title }}"
                              class="opl-card-img"
                              loading="{{ $index < 3 ? 'eager' : 'lazy' }}"

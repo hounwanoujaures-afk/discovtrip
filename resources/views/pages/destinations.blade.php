@@ -135,7 +135,7 @@ foreach ($cities as $c) {
             {{-- Image plein format en fond --}}
             <div class="dp-slide-bg">
                 @if($city->cover_image)
-                    <img src="{{ asset('storage/'.$city->cover_image) }}"
+                    <img src="{{ mediaUrl($city->cover_image) }}"
                          alt="Vue de {{ $city->name }}, Bénin"
                          class="dp-slide-bg-img"
                          loading="{{ $i === 0 ? 'eager' : 'lazy' }}">
@@ -297,7 +297,7 @@ foreach ($cities as $c) {
 
                 <div class="dp-hcard-media">
                     @if($city->cover_image)
-                        <img src="{{ asset('storage/'.$city->cover_image) }}"
+                        <img src="{{ mediaUrl($city->cover_image) }}"
                              alt="{{ $city->name }}, Bénin" class="dp-hcard-img" loading="eager">
                     @else
                         <div class="dp-hcard-img dp-hcard-ph" style="background:linear-gradient({{ $grad }})">
@@ -351,7 +351,7 @@ foreach ($cities as $c) {
                 <div class="dp-city-img-wrap">
                     <div class="dp-skeleton"></div>
                     @if($city->cover_image)
-                        <img src="{{ asset('storage/'.$city->cover_image) }}"
+                        <img src="{{ mediaUrl($city->cover_image) }}"
                              alt="{{ $city->name }}, Bénin" class="dp-city-img" loading="lazy"
                              onload="this.previousElementSibling.style.display='none';this.classList.add('dp-img-loaded')">
                     @else

@@ -11,26 +11,24 @@
 @endpush
 
 @php
-    $eurRate = config('discovtrip.eur_rate', 655.957);
-
     $clientName = $booking->guest_first_name
         ? trim($booking->guest_first_name . ' ' . $booking->guest_last_name)
         : optional($booking->user)?->first_name ?? 'Client';
 
-    $offerPayMode = $booking->offer->payment_mode ?? 'both';
-    $hasOnline    = in_array($offerPayMode, ['online', 'both']) && ($fedapayEnabled || $stripeEnabled);
-    $hasOnSite    = in_array($offerPayMode, ['on_site', 'both']);
+    $offerPayMode   = $booking->offer->payment_mode ?? 'both';
+    $hasOnline      = in_array($offerPayMode, ['online', 'both']) && $kkiapayEnabled;
+    $hasOnSite      = in_array($offerPayMode, ['on_site', 'both']);
 
-    // URL show réservation (signée pour les invités)
     $bookingUrl = is_null($booking->user_id)
         ? \Illuminate\Support\Facades\URL::signedRoute('bookings.show', ['reference' => $booking->reference])
         : route('bookings.show', $booking->reference);
 
-    // CORRECTION : utiliser config() au lieu de hardcoder 655.957
-    $amountEur = round($booking->total_price / $eurRate, 2);
-
-    // CORRECTION : tier->label (pas tier->name qui n'existe pas sur OfferTier)
     $tierLabel = $booking->tier?->label ?? null;
+
+    // URL callback KKiaPay — signée pour les invités
+    $kkiapayCallback = is_null($booking->user_id)
+        ? \Illuminate\Support\Facades\URL::signedRoute('payment.kkiapay.callback', ['reference' => $booking->reference])
+        : route('payment.kkiapay.callback', $booking->reference);
 @endphp
 
 <div class="py-page">
@@ -75,7 +73,7 @@
                     </div>
                 @endif
 
-                {{-- ── Paiement en ligne ── --}}
+                {{-- ── Paiement en ligne via KKiaPay ── --}}
                 @if($hasOnline)
                     <section class="py-section" aria-labelledby="py-online-title">
                         <div class="py-section-head">
@@ -88,61 +86,38 @@
 
                         <div class="py-methods">
 
-                            {{-- FedaPay — Mobile Money --}}
-                            @if($fedapayEnabled)
-                                <a href="{{ route('payment.fedapay.init', $booking->reference) }}"
-                                   class="py-method py-method--fedapay"
-                                   aria-label="Payer par Mobile Money — {{ number_format($booking->total_price, 0, ',', ' ') }} FCFA">
-                                    <div class="py-method-icon" aria-hidden="true">
-                                        <i class="fas fa-mobile-alt"></i>
-                                    </div>
-                                    <div class="py-method-body">
-                                        <div class="py-method-title">Mobile Money</div>
-                                        <div class="py-method-sub">MTN MoMo · Moov Money · WAVE</div>
-                                        <div class="py-method-badges">
-                                            <span class="py-badge py-badge--green">
-                                                <i class="fas fa-bolt" aria-hidden="true"></i> Instantané
-                                            </span>
-                                            <span class="py-badge">🇧🇯 Bénin · Afrique de l'Ouest</span>
-                                        </div>
-                                    </div>
-                                    <div class="py-method-amount" aria-hidden="true">
-                                        <span class="py-method-price">{{ number_format($booking->total_price, 0, ',', ' ') }}</span>
-                                        <span class="py-method-cur">FCFA</span>
-                                    </div>
-                                    <div class="py-method-arrow" aria-hidden="true">
-                                        <i class="fas fa-arrow-right"></i>
-                                    </div>
-                                </a>
-                            @endif
+                            {{-- KKiaPay — Mobile Money + Carte --}}
+                            <button
+                                type="button"
+                                id="kkiapay-btn"
+                                onclick="openKkiapayWidget()"
+                                class="py-method py-method--kkiapay"
+                                aria-label="Payer par Mobile Money ou Carte — {{ number_format($booking->total_price, 0, ',', ' ') }} FCFA">
 
-                            {{-- Stripe — Carte bancaire --}}
-                            @if($stripeEnabled)
-                                <a href="{{ route('payment.stripe.init', $booking->reference) }}"
-                                   class="py-method py-method--stripe"
-                                   aria-label="Payer par carte bancaire — {{ number_format($booking->total_price, 0, ',', ' ') }} FCFA">
-                                    <div class="py-method-icon py-method-icon--card" aria-hidden="true">
-                                        <i class="fas fa-credit-card"></i>
+                                <div class="py-method-icon" aria-hidden="true">
+                                    <i class="fas fa-mobile-alt"></i>
+                                </div>
+                                <div class="py-method-body">
+                                    <div class="py-method-title">Mobile Money · Carte bancaire</div>
+                                    <div class="py-method-sub">MTN MoMo · Moov Money · WAVE · Visa · Mastercard</div>
+                                    <div class="py-method-badges">
+                                        <span class="py-badge py-badge--green">
+                                            <i class="fas fa-bolt" aria-hidden="true"></i> Instantané
+                                        </span>
+                                        <span class="py-badge">🇧🇯 Bénin · Afrique de l'Ouest</span>
+                                        <span class="py-badge py-badge--blue">
+                                            Sécurisé KKiaPay
+                                        </span>
                                     </div>
-                                    <div class="py-method-body">
-                                        <div class="py-method-title">Carte bancaire</div>
-                                        <div class="py-method-sub">Visa · Mastercard · American Express</div>
-                                        <div class="py-method-badges">
-                                            <span class="py-badge py-badge--blue">
-                                                <i class="fab fa-stripe" aria-hidden="true"></i> Stripe
-                                            </span>
-                                            <span class="py-badge">≈ {{ number_format($amountEur, 2, ',', ' ') }} EUR</span>
-                                        </div>
-                                    </div>
-                                    <div class="py-method-amount" aria-hidden="true">
-                                        <span class="py-method-price">{{ number_format($booking->total_price, 0, ',', ' ') }}</span>
-                                        <span class="py-method-cur">FCFA</span>
-                                    </div>
-                                    <div class="py-method-arrow" aria-hidden="true">
-                                        <i class="fas fa-arrow-right"></i>
-                                    </div>
-                                </a>
-                            @endif
+                                </div>
+                                <div class="py-method-amount" aria-hidden="true">
+                                    <span class="py-method-price">{{ number_format($booking->total_price, 0, ',', ' ') }}</span>
+                                    <span class="py-method-cur">FCFA</span>
+                                </div>
+                                <div class="py-method-arrow" aria-hidden="true">
+                                    <i class="fas fa-arrow-right"></i>
+                                </div>
+                            </button>
 
                         </div>
                     </section>
@@ -181,10 +156,13 @@
                                     <span><i class="fas fa-check" aria-hidden="true"></i> Confirmation sous 24h</span>
                                 </div>
                             </div>
-                            <a href="{{ $bookingUrl }}" class="py-onsite-btn">
-                                Confirmer sans payer maintenant
-                                <i class="fas fa-arrow-right" aria-hidden="true"></i>
-                            </a>
+                            <form method="POST" action="{{ route('payment.on_site.confirm', $booking->reference) }}">
+                                @csrf
+                                <button type="submit" class="py-onsite-btn">
+                                    Confirmer sans payer maintenant
+                                    <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                                </button>
+                            </form>
                         </div>
                     </section>
                 @endif
@@ -231,7 +209,7 @@
 
                     @if($booking->offer->cover_image)
                         <div class="py-recap-img-wrap">
-                            <img src="{{ asset('storage/' . $booking->offer->cover_image) }}"
+                            <img src="{{ mediaUrl($booking->offer->cover_image) }}"
                                  alt="{{ $booking->offer->title }}"
                                  class="py-recap-img" loading="lazy" width="400" height="260">
                             <div class="py-recap-img-overlay" aria-hidden="true"></div>
@@ -280,7 +258,6 @@
                             </span>
                         </div>
 
-                        {{-- CORRECTION : tier->label au lieu de tier->name --}}
                         @if($booking->tier && $tierLabel)
                             <div class="py-recap-row">
                                 <span class="py-recap-lbl">
@@ -328,4 +305,53 @@
     </div>
 
 </div>
+
+{{-- ══ KKIAPAY SDK ══════════════════════════════════════════ --}}
+{{-- Chargé uniquement si KKiaPay est activé --}}
+@if($kkiapayEnabled)
+@push('scripts')
+<script src="https://cdn.kkiapay.me/k.js" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    /**
+     * Ouvre le widget de paiement KKiaPay.
+     * La documentation officielle : https://docs.kkiapay.me
+     */
+    window.openKkiapayWidget = function () {
+        openKkiapayWidget({
+            amount:   {{ (int) $booking->total_price }},
+            api_key:  '{{ config('services.kkiapay.public_key') }}',
+            sandbox:  {{ config('services.kkiapay.sandbox') ? 'true' : 'false' }},
+            email:    '{{ $booking->guest_email ?? optional($booking->user)->email ?? '' }}',
+            phone:    '{{ $booking->guest_phone ?? '' }}',
+            name:     '{{ addslashes($clientName) }}',
+            // Callback = redirection après paiement confirmé côté KKiaPay
+            // KKiaPay ajoute automatiquement ?transaction_id=xxx
+            callback: '{{ $kkiapayCallback }}',
+        });
+    };
+
+    // Écouter l'événement de succès de paiement (optionnel — sécurité supplémentaire)
+    addSuccessListener(function (response) {
+        // Le redirect via callback est prioritaire
+        // Cet écouteur est un filet de sécurité si le redirect échoue
+        console.log('KKiaPay success event:', response);
+    });
+
+    addFailedListener(function (response) {
+        console.error('KKiaPay failed event:', response);
+        // Afficher un message d'erreur visible
+        const alert = document.createElement('div');
+        alert.className = 'py-alert py-alert--err';
+        alert.innerHTML = '<i class="fas fa-exclamation-circle"></i> Paiement échoué. Veuillez réessayer ou choisir un autre moyen de paiement.';
+        document.querySelector('.py-main').prepend(alert);
+        // Scroll vers l'alerte
+        alert.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+});
+</script>
+@endpush
+@endif
 @endsection

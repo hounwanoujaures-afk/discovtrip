@@ -15,6 +15,7 @@ export default defineConfig({
                 'resources/css/pages/city.css',
                 'resources/css/pages/contact.css',
                 'resources/css/pages/destinations.css',
+                'resources/css/pages/country.css',
                 'resources/css/pages/offers/index.css',
                 'resources/css/pages/offers/show.css',
 

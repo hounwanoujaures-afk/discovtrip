@@ -189,7 +189,7 @@
 
         <div class="hp-spotlight-media dt-reveal">
             <div class="hp-spotlight-img-wrap">
-                <img src="{{ asset('storage/' . $spotlight->image) }}"
+                <img src="{{ mediaUrl($spotlight->image) }}"
                      alt="{{ $spotlight->title }}"
                      class="hp-spotlight-img"
                      loading="lazy" decoding="async" width="600" height="750">
@@ -273,7 +273,7 @@
                      aria-label="{{ $offer->title }}">
                 <a href="{{ route('offers.show', $offer->slug) }}" class="hp-ocard-img-link" tabindex="-1" aria-hidden="true">
                     @if($offer->cover_image)
-                    <img src="{{ asset('storage/' . $offer->cover_image) }}"
+                    <img src="{{ mediaUrl($offer->cover_image) }}"
                          alt="{{ $offer->title }}" class="hp-ocard-img"
                          loading="{{ $index === 0 ? 'eager' : 'lazy' }}" decoding="async"
                          width="{{ $index === 0 ? '600' : '400' }}" height="{{ $index === 0 ? '800' : '300' }}">
@@ -355,7 +355,7 @@
                class="hp-dest-card dt-reveal dt-delay-{{ $index + 1 }}"
                aria-label="{{ $city->name }}, {{ $city->offers_count }} {{ $city->offers_count > 1 ? 'expériences' : 'expérience' }}">
                 @if($city->cover_image)
-                <img src="{{ asset('storage/' . $city->cover_image) }}"
+                <img src="{{ mediaUrl($city->cover_image) }}"
                      alt="{{ $city->name }}" class="hp-dest-img"
                      loading="lazy" decoding="async" width="400" height="533">
                 @else
@@ -499,7 +499,7 @@
                     <div class="hp-testi-author">
                         @if($useDB && $t->client_photo)
                         <div class="hp-testi-avatar hp-testi-avatar--{{ $color }}" aria-hidden="true">
-                            <img src="{{ asset('storage/' . $t->client_photo) }}"
+                            <img src="{{ mediaUrl($t->client_photo) }}"
                                  alt="{{ $name }}"
                                  style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
                         </div>
