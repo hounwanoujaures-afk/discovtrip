@@ -4,6 +4,10 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\CountryResource\Pages;
 use App\Models\Country;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -12,8 +16,6 @@ use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -22,6 +24,9 @@ use Filament\Tables\Table;
 class CountryResource extends Resource
 {
     protected static ?string $model = Country::class;
+
+    protected static ?string $modelLabel       = 'Pays';
+    protected static ?string $pluralModelLabel = 'Pays';
 
     public static function getNavigationIcon(): string
     {
@@ -43,9 +48,6 @@ class CountryResource extends Resource
         return 'Destinations';
     }
 
-                protected static ?string $modelLabel       = 'Pays';
-    protected static ?string $pluralModelLabel = 'Pays';
-
     public static function form(Schema $schema): Schema
     {
         $disk = config('filesystems.default', 'public');
@@ -60,7 +62,7 @@ class CountryResource extends Resource
                         ->required()
                         ->maxLength(100)
                         ->live(onBlur: true)
-                        ->afterStateUpdated(fn($state, $set) =>
+                        ->afterStateUpdated(fn ($state, $set) =>
                             $set('slug', \Illuminate\Support\Str::slug($state))),
 
                     TextInput::make('slug')
@@ -88,11 +90,11 @@ class CountryResource extends Resource
                     Select::make('continent')
                         ->label('Continent')
                         ->options([
-                            'Afrique'         => 'Afrique',
-                            'Europe'          => 'Europe',
-                            'Asie'            => 'Asie',
-                            'Amériques'       => 'Amériques',
-                            'Océanie'         => 'Océanie',
+                            'Afrique'   => 'Afrique',
+                            'Europe'    => 'Europe',
+                            'Asie'      => 'Asie',
+                            'Amériques' => 'Amériques',
+                            'Océanie'   => 'Océanie',
                         ])
                         ->default('Afrique'),
                 ])
@@ -228,6 +230,11 @@ class CountryResource extends Resource
                 EditAction::make(),
                 DeleteAction::make(),
             ])
+            ->bulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
+            ])
             ->defaultSort('featured_order');
     }
 
@@ -240,5 +247,3 @@ class CountryResource extends Resource
         ];
     }
 }
-
-
