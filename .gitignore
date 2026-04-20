@@ -37,3 +37,6 @@ Thumbs.db
 /database/*.sqlite
 /database/*.sqlite-shm
 /database/*.sqlite-wal
+.env*
+
+database/*.sqlite
