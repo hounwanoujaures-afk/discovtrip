@@ -112,7 +112,7 @@ class CityResource extends Resource
                             ->image()
                             ->imageEditor()
                             ->imageEditorAspectRatios(['4:3', '16:9'])
-                            ->disk('public')
+                            ->disk(config('filesystems.default', 'public'))
                             ->directory('cities/covers')
                             ->visibility('public')
                             ->maxSize(2048)
@@ -304,7 +304,7 @@ class CityResource extends Resource
                     ->label('Image')
                     ->square()
                     ->size(52)
-                    ->disk('public')
+                    ->disk(config('filesystems.default', 'public'))
                     ->defaultImageUrl('https://ui-avatars.com/api/?name=City&background=c1440e&color=fff'),
 
                 Tables\Columns\TextColumn::make('name')

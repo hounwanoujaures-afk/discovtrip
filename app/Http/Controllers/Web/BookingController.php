@@ -196,7 +196,7 @@ class BookingController extends Controller
 
         if ($clientEmail) {
             try {
-                Mail::to($clientEmail)->queue(new BookingConfirmationMail($booking));
+                Mail::to($clientEmail)->send(new BookingConfirmationMail($booking));
             } catch (\Exception $e) {
                 Log::warning('BookingController: email confirmation failed: ' . $e->getMessage());
             }
@@ -292,7 +292,10 @@ class BookingController extends Controller
         $booking->load(['offer.city', 'tier']);
 
         try {
-            Mail::to(auth()->user()->email)->queue(new BookingCancelledMail($booking));
+            $cancelEmail = $booking->guest_email ?? optional(auth()->user())->email;
+            if ($cancelEmail) {
+                Mail::to($cancelEmail)->queue(new BookingCancelledMail($booking));
+            }
         } catch (\Exception $e) {
             Log::warning('BookingController: cancel email failed: ' . $e->getMessage());
         }

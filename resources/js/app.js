@@ -10,6 +10,11 @@ import Alpine from 'alpinejs';
 window.Alpine = Alpine;
 Alpine.start();
 
+// NProgress — terminé au chargement (fallback si DOMContentLoaded tardif)
+if (typeof NProgress !== 'undefined') {
+    NProgress.done();
+}
+
 // ═══════════════════════════════════════════
 // LOADER — masqué dès que la page est prête
 // Délai réduit de 1700ms → 400ms

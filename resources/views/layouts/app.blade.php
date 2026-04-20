@@ -59,11 +59,7 @@
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
           referrerpolicy="no-referrer">
 
-    {{-- Alpine.js (defer = non-bloquant) --}}
-    <script defer
-            src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"
-            integrity="sha384-eSWQ+3f4MuGUL9/VcCDqAUh6bPjhvJhpSl0HiHJdH9c+kGhBwSmyAX7sFKzmKuG"
-            crossorigin="anonymous"></script>
+    {{-- Alpine.js — chargé via npm/Vite dans app.js (PAS de CDN pour éviter le double chargement) --}}
 
     {{-- ════════════════════════════════════════
          ASSETS VITE (CSS + JS compilés)
@@ -110,17 +106,49 @@
 
     {{-- JSON-LD spécifique à la page (offres, articles de blog, etc.) --}}
     @stack('jsonld')
+
+    {{-- NProgress — barre de progression entre pages --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.css">
+    <style>
+        #nprogress .bar { background: #D4A20F !important; height: 3px !important; }
+        #nprogress .peg { box-shadow: 0 0 10px #D4A20F, 0 0 5px #D4A20F !important; }
+        #nprogress .spinner-icon { border-top-color: #D4A20F !important; border-left-color: #D4A20F !important; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js"></script>
+    <script>
+        NProgress.configure({ showSpinner: false, speed: 300, minimum: 0.08 });
+        document.addEventListener('DOMContentLoaded', function() {
+            // Démarrer à chaque clic sur un lien interne
+            document.addEventListener('click', function(e) {
+                var a = e.target.closest('a[href]');
+                if (!a) return;
+                var href = a.getAttribute('href');
+                // Ignorer : ancres, externe, javascript, target=_blank, data-no-progress
+                if (!href || href.startsWith('#') || href.startsWith('javascript') ||
+                    a.target === '_blank' || a.hasAttribute('data-no-progress') ||
+                    href.startsWith('mailto:') || href.startsWith('tel:') ||
+                    (href.startsWith('http') && !href.startsWith(window.location.origin))) return;
+                NProgress.start();
+            });
+            // Stopper quand la page est chargée
+            window.addEventListener('pageshow', function() { NProgress.done(); });
+        });
+    </script>
 </head>
 
 {{-- ════════════════════════════════════════
      BODY — Alpine state global
 ════════════════════════════════════════ --}}
+@php
+    // Wishlist count — calculé UNE seule fois pour toute la page
+    $navWishCount = auth()->check() ? (int) auth()->user()->wishlists()->count() : 0;
+@endphp
 <body
     class="antialiased"
     x-data="{
         navOpen:     false,
         navScrolled: false,
-        wishCount:   {{ auth()->check() ? (int) auth()->user()->wishlists()->count() : 0 }},
+        wishCount:   {{ $navWishCount }},
     }"
     @scroll.window="navScrolled = (window.scrollY > 40)">
 
@@ -186,11 +214,11 @@
             <a href="{{ route('account.wishlist') }}"
                class="dt-nav-wishlist"
                title="Mes favoris"
-               aria-label="Mes favoris ({{ auth()->user()->wishlists()->count() }})">
+               aria-label="Mes favoris ({{ $navWishCount }})">
                 <i class="fas fa-heart" aria-hidden="true"></i>
-                @if(auth()->user()->wishlists()->count() > 0)
+                @if($navWishCount > 0)
                     <span class="dt-nav-wishlist-badge" aria-hidden="true">
-                        {{ auth()->user()->wishlists()->count() }}
+                        {{ $navWishCount }}
                     </span>
                 @endif
             </a>
@@ -598,6 +626,38 @@
         });
     });
 
+})();
+</script>
+
+{{-- ════════════════════════════════════════
+     SCROLL TO TOP
+════════════════════════════════════════ --}}
+<button id="dt-scroll-top"
+        aria-label="Retour en haut de page"
+        onclick="window.scrollTo({top:0,behavior:'smooth'})"
+        style="
+            position:fixed;bottom:100px;right:28px;z-index:9000;
+            width:44px;height:44px;border-radius:50%;
+            background:var(--f-700,#1F6B44);color:#fff;
+            border:none;cursor:pointer;
+            box-shadow:0 4px 16px rgba(0,0,0,.25);
+            display:flex;align-items:center;justify-content:center;
+            opacity:0;transform:translateY(12px);
+            transition:opacity .3s,transform .3s;
+            pointer-events:none;
+        ">
+    <i class="fas fa-arrow-up" style="font-size:14px;" aria-hidden="true"></i>
+</button>
+<script>
+(function(){
+    var btn = document.getElementById('dt-scroll-top');
+    if (!btn) return;
+    window.addEventListener('scroll', function(){
+        var show = window.scrollY > 400;
+        btn.style.opacity      = show ? '1' : '0';
+        btn.style.transform    = show ? 'translateY(0)' : 'translateY(12px)';
+        btn.style.pointerEvents= show ? 'auto' : 'none';
+    }, { passive: true });
 })();
 </script>
 
