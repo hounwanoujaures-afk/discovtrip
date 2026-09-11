@@ -4,7 +4,7 @@
 @section('description', $post->meta_description ?: $post->excerpt)
 @section('og_title', $post->title)
 @section('og_description', $post->excerpt)
-@section('og_image', $post->cover_image ? mediaUrl($post->cover_image) : asset('images/og-default.jpg'))
+@section('og_image', $post->cover_image ? asset('storage/'.$post->cover_image) : asset('images/og-default.jpg'))
 
 @push('styles')
     @vite('resources/css/pages/blog/show.css')
@@ -14,59 +14,23 @@
 <script type="application/ld+json">
 {
     "@@context": "https://schema.org",
-    "@@graph": [
-        {
-            "@@type": "BlogPosting",
-            "headline": "{{ addslashes($post->title) }}",
-            "description": "{{ addslashes($post->excerpt) }}",
-            "image": "{{ $post->cover_image ? mediaUrl($post->cover_image) : asset('images/og-default.jpg') }}",
-            "url": "{{ route('blog.show', $post->slug) }}",
-            "datePublished": "{{ $post->published_at?->toIso8601String() }}",
-            "dateModified": "{{ $post->updated_at->toIso8601String() }}",
-            "inLanguage": "fr-FR",
-            "author": {
-                "@@type": "Person",
-                "name": "{{ $post->author?->name ?? 'DiscovTrip' }}"
-            },
-            "publisher": {
-                "@@type": "Organization",
-                "name": "DiscovTrip",
-                "url": "{{ config('app.url') }}",
-                "logo": {
-                    "@@type": "ImageObject",
-                    "url": "{{ asset('images/logo.png') }}"
-                }
-            },
-            "timeRequired": "PT{{ $post->reading_time }}M",
-            "mainEntityOfPage": {
-                "@@type": "WebPage",
-                "@@id": "{{ route('blog.show', $post->slug) }}"
-            }
-        },
-        {
-            "@@type": "BreadcrumbList",
-            "itemListElement": [
-                {
-                    "@@type": "ListItem",
-                    "position": 1,
-                    "name": "Accueil",
-                    "item": "{{ url('/') }}"
-                },
-                {
-                    "@@type": "ListItem",
-                    "position": 2,
-                    "name": "Blog",
-                    "item": "{{ route('blog.index') }}"
-                },
-                {
-                    "@@type": "ListItem",
-                    "position": 3,
-                    "name": "{{ addslashes(Str::limit($post->title, 60)) }}",
-                    "item": "{{ route('blog.show', $post->slug) }}"
-                }
-            ]
-        }
-    ]
+    "@@type": "BlogPosting",
+    "headline": "{{ $post->title }}",
+    "description": "{{ $post->excerpt }}",
+    "image": "{{ $post->cover_image ? asset('storage/'.$post->cover_image) : asset('images/og-default.jpg') }}",
+    "url": "{{ route('blog.show', $post->slug) }}",
+    "datePublished": "{{ $post->published_at?->toIso8601String() }}",
+    "dateModified": "{{ $post->updated_at->toIso8601String() }}",
+    "author": {
+        "@@type": "Person",
+        "name": "{{ $post->author?->name ?? 'DiscovTrip' }}"
+    },
+    "publisher": {
+        "@@type": "Organization",
+        "name": "DiscovTrip",
+        "logo": { "@@type": "ImageObject", "url": "{{ asset('images/logo.png') }}" }
+    },
+    "timeRequired": "PT{{ $post->reading_time }}M"
 }
 </script>
 @endpush
@@ -85,7 +49,7 @@
 {{-- Hero ─────────────────────────────────────────────── --}}
 @if($post->cover_image)
 <div class="blog-post-hero">
-    <img src="{{ mediaUrl($post->cover_image) }}"
+    <img src="{{ asset('storage/'.$post->cover_image) }}"
          alt="{{ $post->title }}"
          class="blog-post-hero__img"
          loading="eager">
@@ -121,7 +85,11 @@
 
     <article>
         <div class="blog-post-content">
-            {!! $post->content !!}
+            {!! \App\Support\Html::clean($post->content, [
+                'p', 'br', 'strong', 'em', 'b', 'i', 'u',
+                'ul', 'ol', 'li', 'h2', 'h3', 'h4', 'blockquote',
+                'a', 'img', 'pre', 'code',
+            ]) !!}
         </div>
 
         @if($post->tags && count($post->tags) > 0)
@@ -140,7 +108,7 @@
                 @foreach($suggestedOffers as $offer)
                 <a href="{{ route('offers.show', $offer->slug) }}" class="blog-suggested__card">
                     @if($offer->cover_image)
-                        <img src="{{ mediaUrl($offer->cover_image) }}"
+                        <img src="{{ asset('storage/'.$offer->cover_image) }}"
                              alt="{{ $offer->title }}"
                              class="blog-suggested__card-img">
                     @else
@@ -201,7 +169,7 @@
         <div class="blog-related__card">
             <a href="{{ route('blog.show', $item->slug) }}" tabindex="-1" aria-hidden="true">
                 @if($item->cover_image)
-                    <img src="{{ mediaUrl($item->cover_image) }}"
+                    <img src="{{ asset('storage/'.$item->cover_image) }}"
                          alt="{{ $item->title }}"
                          class="blog-related__card-img"
                          loading="lazy">

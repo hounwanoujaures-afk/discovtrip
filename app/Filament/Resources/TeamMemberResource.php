@@ -73,7 +73,7 @@ class TeamMemberResource extends Resource
                         ->image()
                         ->imageEditor()
                         ->imageEditorAspectRatios(['1:1'])
-                        ->disk(config('filesystems.default', 'public'))
+                        ->disk('public')
                         ->directory('team')
                         ->visibility('public')
                         ->maxSize(1024)
@@ -121,7 +121,7 @@ class TeamMemberResource extends Resource
                     ->label('')
                     ->circular()
                     ->size(48)
-                    ->disk(config('filesystems.default', 'public'))
+                    ->disk('public')
                     ->defaultImageUrl(fn($record) =>
                         'https://ui-avatars.com/api/?name=' . urlencode($record->name) . '&background=B8751A&color=FDFAF6&bold=true'
                     ),

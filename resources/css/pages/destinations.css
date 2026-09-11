@@ -660,7 +660,7 @@
 .dp-cta-inner { position:relative; z-index:2; max-width:600px; margin:0 auto; }
 .dp-cta-badge {
     display:inline-flex; align-items:center; gap:8px; padding:6px 18px; border-radius:50px;
-    background:rgba(232,188,58,.12); border:1px solid rgba(232,188,58,.25);
+    background:rgba(225, 222, 215, 0.12); border:1px solid rgba(232,188,58,.25);
     font-size:11px; font-weight:700; color:var(--a-400);
     letter-spacing:.08em; text-transform:uppercase; margin-bottom:24px;
 }

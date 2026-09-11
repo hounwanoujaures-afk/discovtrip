@@ -593,13 +593,26 @@ ul, ol        { list-style: none; }
 
 .dt-btn--ghost-dark {
     background: transparent;
-    border: 1.5px solid var(--bd-mid);
-    color: var(--tx-mid);
+    border: 1.5px solid var(--bd-mid);      /* rgba(28,27,22,.17) — pour fonds clairs */
+    color: var(--tx-mid);                    /* #3C3A2E */
 }
 .dt-btn--ghost-dark:hover {
     border-color: var(--a-500);
     color: var(--a-600);
     background: rgba(212,162,15,.05);
+    transform: translateY(-2px);
+}
+
+/* ── Variante pour fonds sombres (hero, CTA, sections foncées) ── */
+.dt-btn--ghost-light {
+    background: transparent;
+    border: 1.5px solid rgba(255,255,255,.28);
+    color: rgba(255,255,255,.82);
+}
+.dt-btn--ghost-light:hover {
+    border-color: var(--a-400);
+    color: var(--a-400);
+    background: rgba(212,162,15,.08);
     transform: translateY(-2px);
 }
 
@@ -1165,11 +1178,11 @@ a.dt-footer-contact-value:hover { color: var(--a-300); }
     }
 }
 
-/* ══════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════════════════
    COMPOSANT HERO-BG — utilisé sur toutes les pages
    Fond : var(--f-900) + motif wax + glows par défaut
    Avec image : plein écran + overlay + motif superposé
-══════════════════════════════════════════════════════ */
+══════════════════════════════════════════════════════════════════ */
 
 .dt-hero-bg {
     position: absolute;

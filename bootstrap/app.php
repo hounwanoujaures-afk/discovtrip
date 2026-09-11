@@ -19,10 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
     ->withMiddleware(function (Middleware $middleware) {
 
-        // ── Trust Proxies (Railway / Fastly CDN) ──────────────────
-        // CRITIQUE : sans ça, les requêtes arrivent en http://
-        // → la signature Livewire est générée en https:// mais
-        //   vérifiée en http:// → 401 Unauthorized sur upload-file.
+        // ── Trust Proxies (reverse proxy / CDN devant l'appli, ex. Cloudflare sur Hostinger) ──
+        // CRITIQUE : sans ça, les requêtes arrivent en http:// en interne
+        // → détection HTTPS faussée, cookies "secure" et signatures Livewire cassés.
         // Kernel.php est ignoré en Laravel 11/12 pour les proxies —
         // seul bootstrap/app.php est pris en compte.
         $middleware->trustProxies(
@@ -33,16 +32,40 @@ return Application::configure(basePath: dirname(__DIR__))
                      Request::HEADER_X_FORWARDED_PROTO
         );
 
+        // ── Sécurité globale (toutes les requêtes, web + futur api) ──
+        // NOTE AUDIT : ces 3 middlewares existaient déjà mais n'étaient enregistrés
+        // que dans app/Http/Kernel.php, un fichier que Laravel 11/12 n'exécute plus
+        // du tout. Ils étaient donc écrits mais jamais réellement actifs. Rebranchés ici.
+        $middleware->append([
+            \App\Http\Middleware\SecurityHeaders::class,   // CSP, X-Frame-Options, HSTS
+            \App\Http\Middleware\SanitizeInput::class,     // Détection XSS (sans double-encodage)
+            \App\Http\Middleware\IpFiltering::class,       // Blacklist IP (no-op tant que désactivé en config)
+        ]);
+        // ForceHttps n'est PAS rebranché ici : URL::forceScheme('https') dans
+        // AppServiceProvider fait déjà ce travail et fonctionne réellement en prod.
+        // L'ajouter en plus créerait une double redirection HTTP → HTTPS.
+
         // ── Middleware globaux (toutes les requêtes web) ──────────
         $middleware->web(append: [
             \App\Http\Middleware\LocaleMiddleware::class,
         ]);
 
+        // ── Corrige le trimming automatique : ne pas trimmer les mots de passe ──
+        // (App\Http\Middleware\TrimStrings existait déjà avec cette exception,
+        // mais n'était pas non plus branché — Laravel utilisait sa version par défaut)
+        $middleware->trimStrings(except: [
+            'current_password',
+            'password',
+            'password_confirmation',
+        ]);
+
         // ── Alias utilisables dans les routes ─────────────────────
         $middleware->alias([
-            'not.banned' => EnsureUserIsNotBanned::class,
-            'role'       => \App\Http\Middleware\CheckRole::class,
-            'admin'      => \App\Http\Middleware\AdminMiddleware::class,
+            'not.banned'    => EnsureUserIsNotBanned::class,
+            'role'          => \App\Http\Middleware\CheckRole::class,
+            'admin'         => \App\Http\Middleware\AdminMiddleware::class,
+            'rate.advanced' => \App\Http\Middleware\AdvancedRateLimiting::class,
+            'audit'         => \App\Http\Middleware\AuditLog::class,
         ]);
 
         // ── Exclusions CSRF ────────────────────────────────────────

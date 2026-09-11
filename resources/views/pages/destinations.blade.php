@@ -1,11 +1,11 @@
 @extends('layouts.app')
 
-@section('title', 'Destinations — Explorez le Bénin Authentique | DiscovTrip')
+@section('title', 'Destinations — Explorez le ' . ($selectedCountry?->name ?? 'Monde') . ' Authentique | DiscovTrip')
 
 @push('meta')
-<meta name="description" content="Découvrez {{ $totalCities }} destinations authentiques au Bénin : Cotonou, Ganvié, Ouidah, Abomey et plus encore. {{ $totalOffers }} expériences uniques avec des guides locaux certifiés.">
-<meta property="og:title" content="Destinations — Explorez le Bénin Authentique | DiscovTrip">
-<meta property="og:description" content="Découvrez {{ $totalCities }} destinations authentiques au Bénin avec {{ $totalOffers }} expériences uniques.">
+<meta name="description" content="Découvrez {{ $totalCities }} destinations authentiques{{ $selectedCountry ? ' au '.$selectedCountry->name : '' }} : {{ $totalOffers }} expériences uniques avec des guides locaux certifiés.">
+<meta property="og:title" content="Destinations — Explorez {{ $selectedCountry?->name ?? 'nos destinations' }} | DiscovTrip">
+<meta property="og:description" content="Découvrez {{ $totalCities }} destinations authentiques avec {{ $totalOffers }} expériences uniques.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="{{ url()->current() }}">
 @endpush
@@ -41,24 +41,40 @@ foreach ($cities as $c) {
 ══════════════════════════════════════════════ --}}
 <section class="dp-hero">
 
-    {{-- Fond : image DB ou var(--f-900) + motif wax --}}
     <x-hero-bg setting-key="hero_destinations" pattern-id="wp-dp" />
 
     <div class="dt-container dp-hero-inner">
+
+        @if(isset($countriesWithCities) && $countriesWithCities->count() >= 2)
+        <a href="{{ route('destinations') }}" class="dp-back-countries" style="display:inline-flex;align-items:center;gap:.4rem;color:rgba(255,255,255,.75);font-size:.85rem;margin-bottom:1rem;text-decoration:none;">
+            <i class="fas fa-arrow-left"></i> Tous les pays
+        </a>
+        @endif
 
         {{-- Texte --}}
         <div class="dp-hero-text">
             <div class="dp-hero-eyebrow dp-anim dp-anim-1">
                 <span class="dp-eyebrow-dot"></span>
-                Bénin · Afrique de l'Ouest
+                {{-- Eyebrow dynamique : emoji drapeau + nom du pays + région --}}
+                @if($selectedCountry)
+                    {{ $selectedCountry->flag_emoji }} {{ $selectedCountry->name }}
+                    @if($heroRegion)
+                        · {{ $heroRegion }}
+                    @endif
+                @else
+                    🌍 Destinations
+                @endif
                 <span class="dp-eyebrow-dot"></span>
             </div>
             <h1 class="dp-hero-title dp-anim dp-anim-2">
                 Chaque<br>destination,<br><em>une âme.</em>
             </h1>
             <p class="dp-hero-sub dp-anim dp-anim-3">
-                Du delta de l'Ouémé aux plateaux de l'Atakora,
-                {{ $totalOffers }} expériences uniques avec des guides locaux certifiés.
+                {{-- Accroche dynamique : tagline du pays ou fallback générique --}}
+                @if($heroTagline)
+                    {{ $heroTagline }},
+                @endif
+                {{ $totalOffers }} expérience{{ $totalOffers > 1 ? 's' : '' }} unique{{ $totalOffers > 1 ? 's' : '' }} avec des guides locaux certifiés.
             </p>
 
             {{-- Search bar --}}
@@ -67,7 +83,7 @@ foreach ($cities as $c) {
                 <input type="search"
                        id="dp-search-input"
                        class="dp-search-input"
-                       placeholder="Rechercher une destination… Cotonou, Ganvié, Ouidah"
+                       placeholder="Rechercher une destination…{{ $selectedCountry ? ' '.$selectedCountry->name : '' }}"
                        aria-label="Rechercher une destination"
                        autocomplete="off">
                 <span class="dp-search-clear" id="dp-search-clear" aria-label="Effacer" role="button">
@@ -103,7 +119,7 @@ foreach ($cities as $c) {
         </div>
     </div>
 
-    {{-- Vague sombre → sombre (le showcase continue le fond) --}}
+    {{-- Vague sombre → sombre --}}
     <div class="dp-hero-wave" aria-hidden="true">
         <svg viewBox="0 0 1440 72" preserveAspectRatio="none">
             <path d="M0,36 C360,72 1080,0 1440,36 L1440,72 L0,72 Z" fill="var(--f-900)"/>
@@ -132,11 +148,10 @@ foreach ($cities as $c) {
 
         <div class="dp-slide {{ $i === 0 ? 'dp-slide--active' : '' }}" data-index="{{ $i }}">
 
-            {{-- Image plein format en fond --}}
             <div class="dp-slide-bg">
                 @if($city->cover_image)
-                    <img src="{{ mediaUrl($city->cover_image) }}"
-                         alt="Vue de {{ $city->name }}, Bénin"
+                    <img src="{{ asset('storage/'.$city->cover_image) }}"
+                         alt="Vue de {{ $city->name }}, {{ $city->country->name ?? '' }}"
                          class="dp-slide-bg-img"
                          loading="{{ $i === 0 ? 'eager' : 'lazy' }}">
                 @else
@@ -145,12 +160,12 @@ foreach ($cities as $c) {
                 <div class="dp-slide-bg-overlay"></div>
             </div>
 
-            {{-- Contenu centré --}}
             <div class="dt-container dp-slide-inner">
 
                 <div class="dp-slide-left">
                     <div class="dp-slide-eyebrow">
-                        <span>🇧🇯 Bénin</span>
+                        {{-- Drapeau + nom du pays dynamiques depuis la relation --}}
+                        <span>{{ $city->country->flag_emoji ?? '🌍' }} {{ $city->country->name ?? '' }}</span>
                         @if($city->category)
                             <span class="dp-slide-cat">{{ $categoryLabels[$city->category] ?? '' }}</span>
                         @endif
@@ -193,7 +208,6 @@ foreach ($cities as $c) {
                     </a>
                 </div>
 
-                {{-- Numéro décoratif --}}
                 <div class="dp-slide-num" aria-hidden="true">
                     {{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}
                 </div>
@@ -226,7 +240,6 @@ foreach ($cities as $c) {
         </div>
     </div>
 
-    {{-- Vague sombre → crème --}}
     <div class="dp-showcase-wave" aria-hidden="true">
         <svg viewBox="0 0 1440 80" preserveAspectRatio="none">
             <path d="M0,40 C360,80 1080,0 1440,40 L1440,80 L0,80 Z" fill="var(--cream)"/>
@@ -281,7 +294,7 @@ foreach ($cities as $c) {
             <button id="dp-clear-search" class="dp-clear-btn">Effacer la recherche</button>
         </div>
 
-        {{-- 2 premières cartes : format hero horizontal — utilise $heroCards du controller --}}
+        {{-- 2 premières cartes : format hero horizontal --}}
         <div class="dp-hero-cards" id="dp-hero-cards">
             @foreach($heroCards as $i => $city)
             @php
@@ -297,8 +310,8 @@ foreach ($cities as $c) {
 
                 <div class="dp-hcard-media">
                     @if($city->cover_image)
-                        <img src="{{ mediaUrl($city->cover_image) }}"
-                             alt="{{ $city->name }}, Bénin" class="dp-hcard-img" loading="eager">
+                        <img src="{{ asset('storage/'.$city->cover_image) }}"
+                             alt="{{ $city->name }}, {{ $city->country->name ?? '' }}" class="dp-hcard-img" loading="eager">
                     @else
                         <div class="dp-hcard-img dp-hcard-ph" style="background:linear-gradient({{ $grad }})">
                             <span>{{ $categoryEmojis[$cat] ?? '📍' }}</span>
@@ -332,7 +345,7 @@ foreach ($cities as $c) {
             @endforeach
         </div>
 
-        {{-- Reste des cartes : grille standard — utilise $gridCards du controller --}}
+        {{-- Reste des cartes : grille standard --}}
         <div class="dp-city-grid" id="dp-city-grid">
             @forelse($gridCards as $i => $city)
             @php
@@ -351,8 +364,8 @@ foreach ($cities as $c) {
                 <div class="dp-city-img-wrap">
                     <div class="dp-skeleton"></div>
                     @if($city->cover_image)
-                        <img src="{{ mediaUrl($city->cover_image) }}"
-                             alt="{{ $city->name }}, Bénin" class="dp-city-img" loading="lazy"
+                        <img src="{{ asset('storage/'.$city->cover_image) }}"
+                             alt="{{ $city->name }}, {{ $city->country->name ?? '' }}" class="dp-city-img" loading="lazy"
                              onload="this.previousElementSibling.style.display='none';this.classList.add('dp-img-loaded')">
                     @else
                         <div class="dp-city-img dp-city-img--ph dp-img-loaded"
@@ -390,7 +403,7 @@ foreach ($cities as $c) {
                         <div>
                             <h3 class="dp-city-name">{{ $city->name }}</h3>
                             <p class="dp-city-loc">
-                                <i class="fas fa-map-marker-alt"></i> Bénin
+                                <i class="fas fa-map-marker-alt"></i> {{ $city->country->name ?? '' }}
                                 @if($city->distance_from_cotonou ?? null) · {{ $city->distance_from_cotonou }} de Cotonou @endif
                             </p>
                         </div>
@@ -423,7 +436,7 @@ foreach ($cities as $c) {
 
         {{-- Pagination --}}
         @if($cities instanceof \Illuminate\Pagination\LengthAwarePaginator && $cities->hasPages())
-        <div class="dp-pagination">{{ $cities->links() }}</div>
+        <div class="dp-pagination">{{ $cities->links('vendor.pagination.discovtrip') }}</div>
         @endif
 
     </div>
@@ -495,7 +508,7 @@ foreach ($cities as $c) {
         dots[current]?.classList.add('dp-dot--active');
         if (fills[current]) {
             fills[current].style.animation = 'none';
-            void fills[current].offsetWidth; // reflow
+            void fills[current].offsetWidth;
             fills[current].style.animation = 'dp-dot-progress 6s linear forwards';
         }
     };
@@ -542,7 +555,6 @@ foreach ($cities as $c) {
             return;
         }
 
-        // Masquer le bloc hero cards, chercher dans toutes les cartes uniformément
         if (heroCardsWrap) heroCardsWrap.style.display = 'none';
 
         let visible = 0;
@@ -597,21 +609,17 @@ foreach ($cities as $c) {
             const filter = tab.dataset.filter;
             let visible  = 0;
 
-            // Reset recherche
             if (searchInput) searchInput.value = '';
             if (searchClear) { searchClear.style.opacity = '0'; searchClear.style.pointerEvents = 'none'; }
 
-            // Hero cards : afficher uniquement si filtre = all
             if (heroCardsWrap) heroCardsWrap.style.display = filter === 'all' ? '' : 'none';
 
-            // Compter les hero cards si filtre actif
             if (filter !== 'all') {
                 heroCards.forEach(c => {
                     if (c.dataset.category === filter) visible++;
                 });
             }
 
-            // Grille
             cityCards.forEach((card, i) => {
                 const match = filter === 'all' || card.dataset.category === filter;
                 card.style.display = '';
@@ -621,7 +629,6 @@ foreach ($cities as $c) {
                 if (match) visible++;
             });
 
-            // Pour filtre 'all', compter toutes les cartes
             if (filter === 'all') {
                 visible = allCards.length;
             }

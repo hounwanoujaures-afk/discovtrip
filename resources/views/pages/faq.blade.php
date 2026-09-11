@@ -103,7 +103,7 @@
                             <i class="fas fa-plus"></i>
                         </span>
                     </summary>
-                    <p class="fq-a">{!! $faq['a'] !!}</p>
+                    <p class="fq-a">{!! \App\Support\Html::clean($faq['a'], ['strong', 'em', 'a', 'br', 'ul', 'ol', 'li']) !!}</p>
                 </details>
                 @endforeach
             </div>

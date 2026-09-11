@@ -3,78 +3,14 @@
 @section('title', $city->name . ' — Expériences & Activités | DiscovTrip')
 
 @push('meta')
-<meta name="description" content="Découvrez {{ $city->name }} au Bénin : {{ $city->offers_count }} expérience{{ $city->offers_count > 1 ? 's' : '' }} uniques avec des guides locaux certifiés.{{ $city->description ? ' '.Str::limit(strip_tags($city->description), 120) : '' }}">
+<meta name="description" content="Découvrez {{ $city->name }} au Bénin : {{ $city->offers_count }} expérience{{ $city->offers_count > 1 ? 's' : '' }} uniques avec des guides locaux certifiés.{{ $city->description ? ' '.$city->description : '' }}">
 <meta property="og:title" content="{{ $city->name }} — Expériences & Activités | DiscovTrip">
 <meta property="og:description" content="{{ $city->offers_count }} expérience{{ $city->offers_count > 1 ? 's' : '' }} à découvrir à {{ $city->name }}, Bénin.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="{{ url()->current() }}">
-<meta property="og:image" content="{{ $city->cover_image ? mediaUrl($city->cover_image) : asset('images/og-default.jpg') }}">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="{{ $city->cover_image ? mediaUrl($city->cover_image) : asset('images/og-default.jpg') }}">
-@endpush
-
-@push('jsonld')
-<script type="application/ld+json">
-{
-    "@@context": "https://schema.org",
-    "@@graph": [
-        {
-            "@@type": "TouristDestination",
-            "name": "{{ $city->name }}",
-            "description": "{{ Str::limit(strip_tags($city->description ?? ''), 200) }}",
-            "url": "{{ url()->current() }}",
-            "image": "{{ $city->cover_image ? mediaUrl($city->cover_image) : asset('images/og-default.jpg') }}",
-            "touristType": ["Culturel", "Aventure", "Nature"],
-            "address": {
-                "@@type": "PostalAddress",
-                "addressLocality": "{{ $city->name }}",
-                "addressCountry": "BJ"
-            }
-            @if($city->latitude && $city->longitude)
-            ,"geo": {
-                "@@type": "GeoCoordinates",
-                "latitude": {{ $city->latitude }},
-                "longitude": {{ $city->longitude }}
-            }
-            @endif
-            @if(isset($offers) && $offers->count() > 0)
-            ,"containsPlace": [
-                @foreach($offers->take(5) as $i => $offer)
-                {
-                    "@@type": "TouristAttraction",
-                    "name": "{{ addslashes($offer->title) }}",
-                    "url": "{{ route('offers.show', $offer->slug) }}"
-                }{{ !$loop->last ? ',' : '' }}
-                @endforeach
-            ]
-            @endif
-        },
-        {
-            "@@type": "BreadcrumbList",
-            "itemListElement": [
-                {
-                    "@@type": "ListItem",
-                    "position": 1,
-                    "name": "Accueil",
-                    "item": "{{ url('/') }}"
-                },
-                {
-                    "@@type": "ListItem",
-                    "position": 2,
-                    "name": "Destinations",
-                    "item": "{{ url('/destinations') }}"
-                },
-                {
-                    "@@type": "ListItem",
-                    "position": 3,
-                    "name": "{{ $city->name }}",
-                    "item": "{{ url()->current() }}"
-                }
-            ]
-        }
-    ]
-}
-</script>
+@if($city->cover_image)
+<meta property="og:image" content="{{ asset('storage/'.$city->cover_image) }}">
+@endif
 @endpush
 
 @push('styles')
@@ -115,11 +51,11 @@ $minPrice  = $city->offers_min_base_price;
     {{-- Fond --}}
     <div class="cy-hero-bg">
         @if($city->cover_image)
-            <img src="{{ mediaUrl($city->cover_image) }}"
+            <img src="{{ asset('storage/'.$city->cover_image) }}"
                  alt="{{ $city->name }}, Bénin"
                  loading="eager" class="cy-hero-bg-img">
         @elseif($heroOffer?->cover_image)
-            <img src="{{ mediaUrl($heroOffer->cover_image) }}"
+            <img src="{{ asset('storage/'.$heroOffer->cover_image) }}"
                  alt="{{ $city->name }}, Bénin"
                  loading="eager" class="cy-hero-bg-img">
         @else
@@ -337,7 +273,7 @@ $minPrice  = $city->offers_min_base_price;
                 {{-- Image --}}
                 <div class="cy-oc-img">
                     @if($offer->cover_image)
-                        <img src="{{ mediaUrl($offer->cover_image) }}"
+                        <img src="{{ asset('storage/'.$offer->cover_image) }}"
                              alt="{{ $offer->title }}" loading="lazy" class="cy-oc-img-src">
                     @else
                         <div class="cy-oc-img-ph">
@@ -630,7 +566,7 @@ $minPrice  = $city->offers_min_base_price;
 
                 <div class="cy-nearby-img">
                     @if($nearby->cover_image)
-                        <img src="{{ mediaUrl($nearby->cover_image) }}"
+                        <img src="{{ asset('storage/'.$nearby->cover_image) }}"
                              alt="{{ $nearby->name }}, Bénin" loading="lazy">
                     @else
                         <div class="cy-nearby-ph" style="background:linear-gradient({{ $nbGrad }})">

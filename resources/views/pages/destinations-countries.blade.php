@@ -1,159 +1,131 @@
 @extends('layouts.app')
 
-@section('title', 'Destinations — Explorez le monde avec DiscovTrip')
+@section('title', 'Destinations — Choisissez un pays | DiscovTrip')
 
 @push('meta')
-<meta name="description" content="Découvrez {{ $totalCountries }} pays et {{ $totalCities }} destinations authentiques. {{ $totalOffers }} expériences uniques avec des guides locaux certifiés.">
-<meta property="og:title" content="Destinations — DiscovTrip">
-<meta property="og:type" content="website">
-<meta property="og:url" content="{{ url()->current() }}">
+<meta name="description" content="Découvrez nos destinations à travers {{ $countriesWithCities->count() }} pays d'Afrique de l'Ouest.">
 @endpush
 
 @push('styles')
-    @vite('resources/css/pages/destinations.css')
+    @vite('resources/css/pages/destinations-countries.css')
 @endpush
+
+@php
+    $totalCitiesAllCountries = $countriesWithCities->sum('cities_count');
+@endphp
 
 @section('content')
 
-{{-- ══ HERO ════════════════════════════════════════════════ --}}
-<section class="dp-hero">
-    <x-hero-bg setting-key="hero_destinations" pattern-id="wp-dp" />
-    <div class="dt-container dp-hero-inner">
-        <div class="dp-hero-text">
-            <div class="dp-hero-eyebrow dp-anim dp-anim-1">
-                <span class="dp-eyebrow-dot"></span>
-                Afrique · Monde
-                <span class="dp-eyebrow-dot"></span>
-            </div>
-            <h1 class="dp-hero-title dp-anim dp-anim-2">
-                Explorez<br>le monde,<br><em>autrement.</em>
-            </h1>
-            <p class="dp-hero-sub dp-anim dp-anim-3">
-                {{ $totalCountries }} pays, {{ $totalCities }} destinations,
-                {{ $totalOffers }} expériences authentiques avec des guides locaux certifiés.
-            </p>
-        </div>
-        <div class="dp-hero-stats dp-anim dp-anim-3">
-            <div class="dp-hstat">
-                <span class="dp-hstat-num" data-target="{{ $totalCountries }}">0</span>
-                <span class="dp-hstat-lbl">Pays</span>
-            </div>
-            <div class="dp-hstat-div"></div>
-            <div class="dp-hstat">
-                <span class="dp-hstat-num" data-target="{{ $totalCities }}">0</span>
-                <span class="dp-hstat-lbl">Destinations</span>
-            </div>
-            <div class="dp-hstat-div"></div>
-            <div class="dp-hstat">
-                <span class="dp-hstat-num" data-target="{{ $totalOffers }}">0</span>
-                <span class="dp-hstat-lbl">Expériences</span>
-            </div>
-        </div>
+<section class="dp-hero dc-hero">
+    <x-hero-bg setting-key="hero_destinations" pattern-id="wp-dc" />
+
+    {{-- Drapeaux flottants : de vrais pays de la page, pas des images en dur --}}
+    <div class="dc-hero-flags" aria-hidden="true">
+        @foreach($countriesWithCities->take(6) as $j => $flagCountry)
+        <img src="https://flagcdn.com/w160/{{ strtolower($flagCountry->code) }}.png"
+             alt=""
+             class="dc-hero-flag-chip"
+             style="--fi:{{ $j }}">
+        @endforeach
     </div>
-    <div class="dp-hero-wave" aria-hidden="true">
-        <svg viewBox="0 0 1440 72" preserveAspectRatio="none">
-            <path d="M0,36 C360,72 1080,0 1440,36 L1440,72 L0,72 Z" fill="var(--cream)"/>
-        </svg>
+
+    <div class="dt-container dc-hero-inner">
+        <div class="dp-hero-eyebrow">
+            <span class="dp-eyebrow-dot"></span>
+            {{ $countriesWithCities->count() }} pays · Afrique de l'Ouest
+            <span class="dp-eyebrow-dot"></span>
+        </div>
+        <h1 class="dp-hero-title dc-hero-title">
+            Un guide local dans<br><em>chaque pays.</em>
+        </h1>
+        <span class="dc-hero-title-rule" aria-hidden="true"></span>
+        <p class="dc-hero-sub">
+            {{ $countriesWithCities->count() }} pays, {{ $totalCitiesAllCountries }} destinations —
+            chaque circuit est mené par un guide indépendant, sur place.
+            Sélectionnez un pays pour réserver le vôtre.
+        </p>
+        <a href="#dc-grid" class="dc-hero-cta">
+            Choisir mon pays
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 6l4 4 4-4"/>
+            </svg>
+        </a>
     </div>
 </section>
 
-{{-- ══ GRILLE PAYS ════════════════════════════════════════ --}}
-<section class="dp-catalogue" style="background:var(--cream)">
+<section class="dc-grid-section" id="dc-grid">
     <div class="dt-container">
+        <div class="dc-grid">
+            @foreach($countriesWithCities as $i => $country)
+            <a href="{{ route('destinations', ['pays' => $country->slug]) }}"
+               class="dc-card"
+               style="--delay:{{ $i * 0.06 }}s">
 
-        <div class="dp-section-head dt-reveal">
-            <div class="dp-section-label">
-                <span class="dp-label-bar"></span>
-                <span>Nos destinations</span>
-            </div>
-            <h2 class="dp-section-title">Choisissez votre <em>pays</em></h2>
-        </div>
-
-        <div class="dp-city-grid">
-            @forelse($countries as $i => $country)
-            <a href="{{ route('destinations.country', $country->slug) }}"
-               class="dp-city-card dt-reveal"
-               style="--delay:{{ ($i % 6) * 0.07 }}s">
-
-                <div class="dp-city-img-wrap">
-                    @if($country->cover_image)
-                        <img src="{{ mediaUrl($country->cover_image) }}"
-                             alt="{{ $country->name }}"
-                             class="dp-city-img dp-img-loaded" loading="lazy">
-                    @else
-                        <div class="dp-city-img dp-city-img--ph dp-img-loaded"
-                             style="background:linear-gradient(160deg,#1F6B44,#0D3822)">
-                            <span style="font-size:48px">{{ $country->flag_emoji ?? '🌍' }}</span>
+                <div class="dc-card-media">
+                    <div class="dc-card-flagwrap">
+                        <div class="dc-card-flagwave">
+                            <img src="https://flagcdn.com/w320/{{ strtolower($country->code) }}.png"
+                                 alt="Drapeau {{ $country->name }}"
+                                 class="dc-card-flagimg"
+                                 loading="lazy">
                         </div>
-                    @endif
-                    <div class="dp-city-overlay"></div>
-
-                    <div class="dp-city-img-top">
-                        @if($country->is_featured)
-                            <span class="dp-city-badge dp-city-badge--feat"><i class="fas fa-star"></i> Featured</span>
-                        @else
-                            <span></span>
-                        @endif
-                        @if($country->continent)
-                            <span class="dp-city-badge dp-city-badge--season">{{ $country->continent }}</span>
-                        @endif
+                        <div class="dc-card-vignette"></div>
+                        <div class="dc-card-glow"></div>
                     </div>
-
-                    <div class="dp-city-hover-reveal">
-                        <span class="dp-city-hover-name">{{ $country->flag_emoji ?? '' }} {{ $country->name }}</span>
-                        <span class="dp-city-hover-cta">Découvrir <i class="fas fa-arrow-right"></i></span>
-                    </div>
+                    <span class="dc-card-seal">{{ $country->code }}</span>
                 </div>
 
-                <div class="dp-city-body">
-                    <div class="dp-city-header">
-                        <div>
-                            <h3 class="dp-city-name">
-                                {{ $country->flag_emoji ?? '' }} {{ $country->name }}
-                            </h3>
-                            <p class="dp-city-loc">
-                                <i class="fas fa-map-marker-alt"></i>
-                                {{ $country->continent ?? 'Afrique' }}
-                                @if($country->capital) · {{ $country->capital }} @endif
-                            </p>
-                        </div>
-                    </div>
-                    @if($country->description)
-                        <p class="dp-city-desc">{{ Str::limit($country->description, 90) }}</p>
-                    @endif
-                    <div class="dp-city-foot">
-                        <span class="dp-city-count">
-                            <i class="fas fa-map-marker-alt"></i>
-                            {{ $country->cities_count ?? 0 }} ville{{ ($country->cities_count ?? 0) > 1 ? 's' : '' }}
+                <div class="dc-card-body">
+                    <h2 class="dc-card-name">{{ $country->name }}</h2>
+                    <span class="dc-card-flourish"></span>
+
+                    <div class="dc-card-meta">
+                        <span class="dc-meta-row">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                 stroke-linecap="round" stroke-linejoin="round" class="dc-meta-icon">
+                                <path d="M12 21s-7-5.686-7-11a7 7 0 0 1 14 0c0 5.314-7 11-7 11z"/>
+                                <circle cx="12" cy="10" r="2.5"/>
+                            </svg>
+                            {{ $country->cities_count }} destination{{ $country->cities_count > 1 ? 's' : '' }} à explorer
                         </span>
-                        <span class="dp-city-btn">Explorer <i class="fas fa-arrow-right"></i></span>
-                    </div>
-                </div>
-            </a>
-            @empty
-                <div style="grid-column:1/-1;text-align:center;padding:60px 24px">
-                    <div style="font-size:48px;margin-bottom:12px">🌍</div>
-                    <p style="color:#7a6a58">Destinations bientôt disponibles.</p>
-                </div>
-            @endforelse
-        </div>
 
+                        @if($country->currency)
+                        <span class="dc-meta-row">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                 stroke-linecap="round" stroke-linejoin="round" class="dc-meta-icon">
+                                <circle cx="12" cy="12" r="8.5"/>
+                                <path d="M9.5 15c0 1 1 1.8 2.5 1.8s2.5-.7 2.5-1.7c0-2.5-5-1.2-5-3.6 0-1 1-1.7 2.5-1.7s2.4.6 2.5 1.6"/>
+                                <path d="M12 7.3v1.1M12 15.6v1.1"/>
+                            </svg>
+                            {{ $country->currency }}
+                        </span>
+                        @endif
+
+                        @if($country->phone_code)
+                        <span class="dc-meta-row">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                 stroke-linecap="round" stroke-linejoin="round" class="dc-meta-icon">
+                                <path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1.1-.3 1.2.4 2.5.6 3.8.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C11.6 21 3 12.4 3 2.7c0-.6.4-1 1-1H7.3c.6 0 1 .4 1 1 0 1.3.2 2.6.6 3.8.1.4 0 .8-.3 1.1L6.6 10.8z"/>
+                            </svg>
+                            {{ Str::startsWith($country->phone_code, '+') ? $country->phone_code : '+'.ltrim($country->phone_code, '+') }}
+                        </span>
+                        @endif
+                    </div>
+
+                    <span class="dc-card-cta">
+                        Explorer
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 4l4 4-4 4"/>
+                        </svg>
+                    </span>
+                </div>
+
+            </a>
+            @endforeach
+        </div>
     </div>
 </section>
 
 @endsection
-
-@push('scripts')
-<script>
-document.querySelectorAll('.dp-hstat-num[data-target]').forEach(el => {
-    const target = parseInt(el.dataset.target, 10);
-    const start  = performance.now();
-    const tick   = (now) => {
-        const p = Math.min((now - start) / 1400, 1);
-        el.textContent = Math.round((1 - Math.pow(1 - p, 3)) * target);
-        if (p < 1) requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-});
-</script>
-@endpush

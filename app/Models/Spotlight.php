@@ -5,24 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * Spotlight — expérience phare liée à une offre.
- *
- * Les deux CTAs pointent vers offers.show de l'offre liée.
- * Fallback : cta1_url / cta2_url saisis en admin si pas d'offre liée.
- */
 class Spotlight extends Model
 {
     protected $fillable = [
-        'offer_id',
-        'title', 'subtitle', 'description',
+        'offer_id', 'title', 'subtitle', 'description',
         'image', 'badge_text', 'badge_icon', 'highlight_word',
-        'stat1_value', 'stat1_label',
-        'stat2_value', 'stat2_label',
-        'stat3_value', 'stat3_label',
-        'cta1_label', 'cta1_url',
-        'cta2_label', 'cta2_url',
-        'is_active', 'starts_at', 'ends_at', 'sort_order',
+        'stat1_value', 'stat1_label', 'stat2_value', 'stat2_label',
+        'stat3_value', 'stat3_label', 'cta1_label', 'cta1_url',
+        'cta2_label', 'cta2_url', 'is_active', 'starts_at', 'ends_at', 'sort_order',
     ];
 
     protected $casts = [
@@ -31,19 +21,11 @@ class Spotlight extends Model
         'ends_at'   => 'datetime',
     ];
 
-    /* ─── RELATION ─── */
-
     public function offer(): BelongsTo
     {
         return $this->belongsTo(Offer::class);
     }
 
-    /* ─── ACCESSORS ─── */
-
-    /**
-     * URL commune aux deux CTAs → offers.show
-     * Fallback : cta1_url admin.
-     */
     public function getOfferUrlAttribute(): ?string
     {
         if ($this->offer?->slug) {
@@ -63,7 +45,11 @@ class Spotlight extends Model
         return $this->cta2_label ?: 'En savoir plus';
     }
 
-    /* ─── SCOPE ─── */
+    protected static function booted(): void
+    {
+        static::saved(fn () => \Illuminate\Support\Facades\Cache::forget('home.spotlight'));
+        static::deleted(fn () => \Illuminate\Support\Facades\Cache::forget('home.spotlight'));
+    }
 
     public function scopeActive($query)
     {

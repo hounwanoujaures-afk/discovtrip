@@ -15,14 +15,7 @@
 
     {{-- Body --}}
     <div class="email-body">
-        @php
-            $clientName = $clientName
-                ?? ($booking->guest_first_name
-                    ?? optional($booking->user)->first_name
-                    ?? optional($booking->user)->name
-                    ?? 'Voyageur');
-        @endphp
-        <p class="email-greeting">Bonjour {{ $clientName }},</p>
+        <p class="email-greeting">Bonjour {{ $booking->user->first_name }},</p>
         <p class="email-p">
             Nous confirmons l'annulation de votre réservation.
             Voici le récapitulatif :

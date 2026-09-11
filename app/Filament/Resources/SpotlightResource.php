@@ -86,7 +86,7 @@ class SpotlightResource extends Resource
                             ->label('Image principale')
                             ->image()
                             ->directory('spotlights')
-                            ->disk(config('filesystems.default', 'public'))
+                            ->disk('public')
                             ->maxSize(3072)
                             ->imageEditor()
                             ->imageEditorAspectRatios(['4:3', '1:1'])
@@ -155,7 +155,7 @@ class SpotlightResource extends Resource
                 Tables\Columns\ImageColumn::make('image')
                     ->label('Image')
                     ->circular()
-                    ->disk(config('filesystems.default', 'public'))
+                    ->disk('public')
                     ->defaultImageUrl('https://ui-avatars.com/api/?name=Spotlight&background=c1440e&color=fff'),
 
                 Tables\Columns\TextColumn::make('title')

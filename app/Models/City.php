@@ -14,28 +14,11 @@ class City extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name',
-        'slug',
-        'country_id',
-        'latitude',
-        'longitude',
-        'description',
-        'cover_image',
-        'region',
-        'distance_from_cotonou',
-        'duration_days',
-        'best_season',
-        'category',
-        'average_rating',
-        'is_featured',
-        'is_active',
-        'featured_order',
-        'highlights',
-        'landmarks',
-        'how_to_get_there',
-        'best_time_detail',
-        'budget_range',
-        'fun_facts',
+        'name', 'slug', 'country_id', 'latitude', 'longitude', 'description',
+        'cover_image', 'region', 'distance_from_cotonou', 'duration_days',
+        'best_season', 'category', 'average_rating', 'is_featured', 'is_active',
+        'featured_order', 'highlights', 'landmarks', 'how_to_get_there',
+        'best_time_detail', 'budget_range', 'fun_facts',
     ];
 
     protected $casts = [
@@ -49,30 +32,49 @@ class City extends Model
         'fun_facts'      => 'array',
     ];
 
-    // ════════════════════════════════════════════════════════
-    // BOOT — Auto-slug
-    // ════════════════════════════════════════════════════════
-
     protected static function boot(): void
     {
         parent::boot();
 
         static::creating(function ($city) {
             if (empty($city->slug)) {
-                $city->slug = Str::slug($city->name);
+                $city->slug = static::uniqueSlug(Str::slug($city->name));
             }
         });
 
         static::updating(function ($city) {
             if (empty($city->slug)) {
-                $city->slug = Str::slug($city->name);
+                $city->slug = static::uniqueSlug(Str::slug($city->name), $city->id);
             }
+        });
+
+        static::saved(function () {
+            \Illuminate\Support\Facades\Cache::forget('home.featured_cities');
+            \Illuminate\Support\Facades\Cache::forget('home.stats');
+        });
+
+        static::deleted(function () {
+            \Illuminate\Support\Facades\Cache::forget('home.featured_cities');
+            \Illuminate\Support\Facades\Cache::forget('home.stats');
         });
     }
 
-    // ════════════════════════════════════════════════════════
-    // RELATIONS
-    // ════════════════════════════════════════════════════════
+    protected static function uniqueSlug(string $base, ?int $ignoreId = null): string
+    {
+        $slug = $base;
+        $i = 2;
+
+        while (
+            static::where('slug', $slug)
+                ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
+                ->exists()
+        ) {
+            $slug = "{$base}-{$i}";
+            $i++;
+        }
+
+        return $slug;
+    }
 
     public function country(): BelongsTo
     {
@@ -89,10 +91,6 @@ class City extends Model
         return $this->hasManyThrough(Review::class, Offer::class);
     }
 
-    // ════════════════════════════════════════════════════════
-    // SCOPES
-    // ════════════════════════════════════════════════════════
-
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
@@ -103,18 +101,10 @@ class City extends Model
         return $query->where('is_featured', true)->where('is_active', true);
     }
 
-    // ════════════════════════════════════════════════════════
-    // ACCESSORS
-    // ════════════════════════════════════════════════════════
-
     public function getPublishedOffersCountAttribute(): int
     {
         return $this->offers()->published()->count();
     }
-
-    // ════════════════════════════════════════════════════════
-    // HELPERS
-    // ════════════════════════════════════════════════════════
 
     public function recalculateRating(): void
     {

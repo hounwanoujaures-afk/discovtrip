@@ -8,18 +8,14 @@ use Illuminate\Support\Str;
 class Country extends Model
 {
     protected $fillable = [
-        'name', 'slug', 'code', 'continent',
-        'flag_emoji', 'cover_image', 'capital',
-        'currency_code', 'currency_name', 'language',
-        'population', 'area',
-        'description', 'history', 'culture', 'practical_info',
-        'meta_title', 'meta_description',
-        'is_active', 'is_featured', 'featured_order',
-    ];
-
-    protected $casts = [
-        'is_active'   => 'boolean',
-        'is_featured' => 'boolean',
+        'name',
+        'slug',
+        'code',
+        'currency',
+        'phone_code',
+        'continent',
+        'region',        // ex : "Afrique de l'Ouest"
+        'hero_tagline',  // ex : "Du delta de l'Ouémé aux plateaux de l'Atakora"
     ];
 
     protected static function boot(): void
@@ -28,41 +24,50 @@ class Country extends Model
 
         static::creating(function ($country) {
             if (empty($country->slug)) {
-                $country->slug = Str::slug($country->name);
+                $country->slug = static::uniqueSlug(Str::slug($country->name));
+            }
+        });
+
+        static::updating(function ($country) {
+            if (empty($country->slug)) {
+                $country->slug = static::uniqueSlug(Str::slug($country->name), $country->id);
             }
         });
     }
 
-    // ── Relations ────────────────────────────────────────────
+    protected static function uniqueSlug(string $base, ?int $ignoreId = null): string
+    {
+        $slug = $base;
+        $i = 2;
+
+        while (
+            static::where('slug', $slug)
+                ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
+                ->exists()
+        ) {
+            $slug = "{$base}-{$i}";
+            $i++;
+        }
+
+        return $slug;
+    }
 
     public function cities()
     {
         return $this->hasMany(City::class);
     }
 
-    public function activeCities()
-    {
-        return $this->hasMany(City::class)->where('is_active', true);
-    }
-
-    // ── Scopes ───────────────────────────────────────────────
-
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
-
-    // ── Accessors ────────────────────────────────────────────
-
     /**
-     * Nombre de villes actives avec au moins une offre publiée.
-     * Usage : $country->active_cities_count (via withCount)
+     * Emoji drapeau calculé depuis le code ISO à 2 lettres (BJ → 🇧🇯).
      */
-    public function getActiveCitiesWithOffersCountAttribute(): int
+    public function getFlagEmojiAttribute(): string
     {
-        return $this->cities()
-            ->where('is_active', true)
-            ->whereHas('offers', fn($q) => $q->where('status', 'published'))
-            ->count();
+        if (! $this->code || strlen($this->code) !== 2) {
+            return '🌍';
+        }
+
+        $code = strtoupper($this->code);
+
+        return mb_chr(127397 + ord($code[0])) . mb_chr(127397 + ord($code[1]));
     }
 }

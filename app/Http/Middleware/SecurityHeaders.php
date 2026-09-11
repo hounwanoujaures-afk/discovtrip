@@ -22,50 +22,32 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class SecurityHeaders
 {
-    /**
-     * Headers de sécurité à appliquer
-     */
     private const SECURITY_HEADERS = [
-        // Protection XSS
         'X-XSS-Protection' => '1; mode=block',
-        
-        // Empêche le MIME-type sniffing
         'X-Content-Type-Options' => 'nosniff',
-        
-        // Protection Clickjacking
         'X-Frame-Options' => 'DENY',
-        
-        // Politique de référent
         'Referrer-Policy' => 'strict-origin-when-cross-origin',
-        
-        // Permissions navigateur
         'Permissions-Policy' => 'geolocation=(), microphone=(), camera=()',
     ];
 
-    /**
-     * Handle an incoming request.
-     */
     public function handle(Request $request, Closure $next): Response
     {
         $response = $next($request);
 
-        // Appliquer headers de sécurité basiques
         foreach (self::SECURITY_HEADERS as $header => $value) {
             $response->headers->set($header, $value, false);
         }
 
-        // Content Security Policy (CSP)
         if (config('security.csp.enabled', true)) {
             $response->headers->set(
                 'Content-Security-Policy',
-                $this->buildCspHeader(),
+                $this->buildCspHeader($request),
                 false
             );
         }
 
-        // Strict-Transport-Security (HSTS) - Seulement en HTTPS
         if ($request->secure() && config('security.hsts.enabled', true)) {
-            $maxAge = config('security.hsts.max_age', 31536000); // 1 an par défaut
+            $maxAge = config('security.hsts.max_age', 31536000);
             $includeSubDomains = config('security.hsts.include_subdomains', true);
             $preload = config('security.hsts.preload', false);
 
@@ -80,7 +62,6 @@ class SecurityHeaders
             $response->headers->set('Strict-Transport-Security', $hstsValue, false);
         }
 
-        // Retirer headers qui révèlent des informations
         $response->headers->remove('X-Powered-By');
         $response->headers->remove('Server');
 
@@ -88,13 +69,15 @@ class SecurityHeaders
     }
 
     /**
-     * Construire le header Content-Security-Policy
+     * Construire le header Content-Security-Policy.
+     * CSP stricte par défaut ; des directives supplémentaires (ex. 'unsafe-eval'
+     * pour Alpine.js/Livewire) ne sont fusionnées que sur les routes admin.
      */
-    private function buildCspHeader(): string
+    private function buildCspHeader(Request $request): string
     {
         $cspDirectives = config('security.csp.directives', [
             "default-src" => ["'self'"],
-            "script-src" => ["'self'", "'unsafe-inline'"],
+            "script-src" => ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
             "style-src" => ["'self'", "'unsafe-inline'"],
             "img-src" => ["'self'", "data:", "https:"],
             "font-src" => ["'self'", "data:"],
@@ -112,12 +95,8 @@ class SecurityHeaders
         return implode('; ', $csp);
     }
 
-    /**
-     * Déterminer si la requête nécessite une protection CSRF
-     */
     private function shouldEnforceCsrf(Request $request): bool
     {
-        // Exemptions CSRF (ex: API endpoints avec JWT)
         $exemptPaths = config('security.csrf.exempt', [
             'api/*',
         ]);

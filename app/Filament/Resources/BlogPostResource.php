@@ -104,7 +104,7 @@ class BlogPostResource extends Resource
                         ->label('Image de couverture')
                         ->image()
                         ->directory('blog/covers')
-                        ->disk(config('filesystems.default', 'public'))
+                        ->disk('public')
                         ->maxSize(2048)
                         ->imageEditor()
                         ->helperText('Format recommandé : 1200×630px (ratio 1.91:1)'),
@@ -166,7 +166,7 @@ class BlogPostResource extends Resource
             ->columns([
                 Tables\Columns\ImageColumn::make('cover_image')
                     ->label('')
-                    ->disk(config('filesystems.default', 'public'))
+                    ->disk('public')
                     ->size(48)
                     ->circular(),
 

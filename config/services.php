@@ -145,17 +145,16 @@ return [
     | Stripe
     |--------------------------------------------------------------------------
     */
-    // Stripe — désactivé pour l'instant (pas éligible Bénin)
-    // 'stripe' => [...],
+    'stripe' => [
+        'secret_key' => env('STRIPE_SECRET'),
+        'public' => env('STRIPE_PUBLIC_KEY'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+    ],
 
-    // FedaPay — désactivé pour l'instant
-    // 'fedapay' => [...],
-
-    'kkiapay' => [
-        'public_key'  => env('KKIAPAY_PUBLIC_KEY', ''),
-        'private_key' => env('KKIAPAY_PRIVATE_KEY', ''),
-        // true = sandbox (tests), false = production (live)
-        'sandbox'     => env('KKIAPAY_SANDBOX', true),
+    'fedapay' => [
+        'public_key' => env('FEDAPAY_PUBLIC_KEY'),
+        'secret_key' => env('FEDAPAY_SECRET_KEY'),
+        'env'        => env('FEDAPAY_ENV', 'sandbox'),
     ],
 
 

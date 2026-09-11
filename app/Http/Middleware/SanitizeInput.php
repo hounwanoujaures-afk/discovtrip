@@ -91,7 +91,7 @@ class SanitizeInput
         return $sanitized;
     }
 
-    private function sanitizeString(string $value, string $key): string
+    private function sanitizeString(string $value, string|int $key): string
     {
         // Supprimer les null bytes
         $value = str_replace(chr(0), '', $value);

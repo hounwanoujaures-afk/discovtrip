@@ -639,12 +639,15 @@
         justify-content: center;
         /* PAS d'overflow:hidden — le QR div généré doit avoir de la place */
     }
-    /* qrcodejs génère un div > img ou div > canvas à l'intérieur */
+    /* qrcodejs génère un div > img ou div > canvas à l'intérieur — on force
+       uniquement la taille, jamais le display : qrcodejs cache lui-même
+       l'élément (img ou canvas) qu'il n'utilise pas via un style inline, et
+       "display:block !important" sur les deux annulait ce masquage, faisant
+       apparaître les deux superposés (bug remonté sept. 2026). */
     #v-qr-container img,
     #v-qr-container canvas {
-        display: block !important;
-        width: 72px !important;
-        height: 72px !important;
+        max-width:  72px !important;
+        max-height: 72px !important;
     }
     .v-qr-label {
         font-family: var(--font-b);
@@ -833,10 +836,10 @@
 
     /* ── PRINT ────────────────────────────────────── */
     @media print {
-        body { background: white; }
+        body { background: white; min-height: 0; }
         .toolbar { display: none !important; }
         .doc-outer { padding: 0; max-width: 100%; }
-        .voucher { box-shadow: none; border-radius: 0; }
+        .voucher { box-shadow: none; border-radius: 0; page-break-inside: avoid; }
         .v-perf { background: white; }
         .v-perf::before, .v-perf::after { background: white; }
         .v-grid-2, .v-grid-3 { display: grid !important; }
@@ -931,7 +934,7 @@
             {{-- Logo --}}
             <div class="v-logo-block">
                 <div class="v-logo-img-wrap">
-                    <img src="{{ asset('images/logo.jpg') }}"
+                    <img src="{{ asset('images/logo.png') }}"
                          alt="DiscovTrip"
                          class="v-logo-img"
                          onerror="this.parentElement.style.display='none';document.getElementById('logo-fb').style.display='block'">
@@ -1141,7 +1144,7 @@
                 <li>Le point de rendez-vous sera communiqué par votre guide au moins <strong>24h avant</strong>.</li>
                 <li>Annulation gratuite jusqu'à <strong>48h avant</strong> — passé ce délai, aucun remboursement.</li>
                 <li>En cas de force majeure, DiscovTrip se réserve le droit de reprogrammer l'expérience.</li>
-                <li>Contact : <strong><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="eb8884859f8a889fab8f829888849d9f99829bc5888486">[email&#160;protected]</a></strong> · WhatsApp : <strong>+229 01 91 09 43 66</strong></li>
+                <li>Contact : <strong><a href="mailto:{{ config('discovtrip.contact_email', 'contact@discovtrip.com') }}">{{ config('discovtrip.contact_email', 'contact@discovtrip.com') }}</a></strong> · WhatsApp : <strong>+229 01 91 09 43 66</strong></li>
             </ul>
         </div>
 
@@ -1200,7 +1203,7 @@
             <div class="v-footer-tagline">🇧🇯 L'Afrique Autrement</div>
         </div>
         <div class="v-footer-center">
-            <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8eede1e0faefedfaceeae7fdede1f8fafce7fea0ede1e3">[email&#160;protected]</a><br>
+            <a href="mailto:{{ config('discovtrip.contact_email', 'contact@discovtrip.com') }}">{{ config('discovtrip.contact_email', 'contact@discovtrip.com') }}</a><br>
             +229 01 91 09 43 66<br>
             Cotonou, République du Bénin
         </div>

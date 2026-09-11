@@ -359,7 +359,7 @@ class OfferResource extends Resource
                         ->label('Image de couverture')
                         ->image()
                         ->directory('offers/covers')
-                        ->disk(config('filesystems.default', 'public'))
+                        ->disk('public')
                         ->maxSize(2048)
                         ->imageEditor()
                         ->imageEditorAspectRatios(['16:9','4:3'])
@@ -370,7 +370,7 @@ class OfferResource extends Resource
                         ->multiple()
                         ->image()
                         ->directory('offers/gallery')
-                        ->disk(config('filesystems.default', 'public'))
+                        ->disk('public')
                         ->maxSize(2048)
                         ->maxFiles(10)
                         ->imageEditor()
@@ -693,7 +693,7 @@ class OfferResource extends Resource
                 Tables\Columns\ImageColumn::make('cover_image')
                     ->label('')
                     ->circular()
-                    ->disk(config('filesystems.default', 'public'))
+                    ->disk('public')
                     ->size(40),
 
                 Tables\Columns\TextColumn::make('title')

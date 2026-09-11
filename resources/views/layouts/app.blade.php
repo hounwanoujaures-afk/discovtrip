@@ -7,7 +7,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token"                    content="{{ csrf_token() }}">
-    <meta http-equiv="X-Frame-Options"         content="SAMEORIGIN">
     <meta http-equiv="X-Content-Type-Options"  content="nosniff">
     <meta name="referrer"                      content="strict-origin-when-cross-origin">
 
@@ -59,7 +58,9 @@
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
           referrerpolicy="no-referrer">
 
-    {{-- Alpine.js — chargé via npm/Vite dans app.js (PAS de CDN pour éviter le double chargement) --}}
+    {{-- Alpine.js est importé et démarré directement dans resources/js/app.js
+         via le bundle Vite — le <script> CDN a été retiré (hash d'intégrité
+         obsolète le bloquait, et il faisait doublon avec le bundle). --}}
 
     {{-- ════════════════════════════════════════
          ASSETS VITE (CSS + JS compilés)
@@ -106,49 +107,17 @@
 
     {{-- JSON-LD spécifique à la page (offres, articles de blog, etc.) --}}
     @stack('jsonld')
-
-    {{-- NProgress — barre de progression entre pages --}}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.css">
-    <style>
-        #nprogress .bar { background: #D4A20F !important; height: 3px !important; }
-        #nprogress .peg { box-shadow: 0 0 10px #D4A20F, 0 0 5px #D4A20F !important; }
-        #nprogress .spinner-icon { border-top-color: #D4A20F !important; border-left-color: #D4A20F !important; }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js"></script>
-    <script>
-        NProgress.configure({ showSpinner: false, speed: 300, minimum: 0.08 });
-        document.addEventListener('DOMContentLoaded', function() {
-            // Démarrer à chaque clic sur un lien interne
-            document.addEventListener('click', function(e) {
-                var a = e.target.closest('a[href]');
-                if (!a) return;
-                var href = a.getAttribute('href');
-                // Ignorer : ancres, externe, javascript, target=_blank, data-no-progress
-                if (!href || href.startsWith('#') || href.startsWith('javascript') ||
-                    a.target === '_blank' || a.hasAttribute('data-no-progress') ||
-                    href.startsWith('mailto:') || href.startsWith('tel:') ||
-                    (href.startsWith('http') && !href.startsWith(window.location.origin))) return;
-                NProgress.start();
-            });
-            // Stopper quand la page est chargée
-            window.addEventListener('pageshow', function() { NProgress.done(); });
-        });
-    </script>
 </head>
 
 {{-- ════════════════════════════════════════
      BODY — Alpine state global
 ════════════════════════════════════════ --}}
-@php
-    // Wishlist count — calculé UNE seule fois pour toute la page
-    $navWishCount = auth()->check() ? (int) auth()->user()->wishlists()->count() : 0;
-@endphp
 <body
     class="antialiased"
     x-data="{
         navOpen:     false,
         navScrolled: false,
-        wishCount:   {{ $navWishCount }},
+        wishCount:   {{ auth()->check() ? (int) auth()->user()->wishlists()->count() : 0 }},
     }"
     @scroll.window="navScrolled = (window.scrollY > 40)">
 
@@ -171,7 +140,7 @@
         <a href="{{ route('home') }}"
            class="dt-logo"
            aria-label="DiscovTrip — Retour à l'accueil">
-            <img src="{{ asset('images/logo.jpg') }}"
+            <img src="{{ asset('images/logo.png') }}"
                  alt="DiscovTrip"
                  class="dt-logo-img"
                  width="44" height="44"
@@ -214,11 +183,11 @@
             <a href="{{ route('account.wishlist') }}"
                class="dt-nav-wishlist"
                title="Mes favoris"
-               aria-label="Mes favoris ({{ $navWishCount }})">
+               aria-label="Mes favoris ({{ auth()->user()->wishlists()->count() }})">
                 <i class="fas fa-heart" aria-hidden="true"></i>
-                @if($navWishCount > 0)
+                @if(auth()->user()->wishlists()->count() > 0)
                     <span class="dt-nav-wishlist-badge" aria-hidden="true">
-                        {{ $navWishCount }}
+                        {{ auth()->user()->wishlists()->count() }}
                     </span>
                 @endif
             </a>
@@ -387,7 +356,7 @@
             {{-- ── Brand ── --}}
             <div class="dt-footer-brand">
                 <a href="{{ route('home') }}" class="dt-footer-logo" aria-label="DiscovTrip — Accueil">
-                    <img src="{{ asset('images/logo.jpg') }}"
+                    <img src="{{ asset('images/logo.png') }}"
                          alt="DiscovTrip"
                          class="dt-footer-logo-img"
                          width="36" height="36"
@@ -511,7 +480,7 @@
 ════════════════════════════════════════ --}}
 @stack('scripts')
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 (function () {
     'use strict';
 
@@ -626,38 +595,6 @@
         });
     });
 
-})();
-</script>
-
-{{-- ════════════════════════════════════════
-     SCROLL TO TOP
-════════════════════════════════════════ --}}
-<button id="dt-scroll-top"
-        aria-label="Retour en haut de page"
-        onclick="window.scrollTo({top:0,behavior:'smooth'})"
-        style="
-            position:fixed;bottom:100px;right:28px;z-index:9000;
-            width:44px;height:44px;border-radius:50%;
-            background:var(--f-700,#1F6B44);color:#fff;
-            border:none;cursor:pointer;
-            box-shadow:0 4px 16px rgba(0,0,0,.25);
-            display:flex;align-items:center;justify-content:center;
-            opacity:0;transform:translateY(12px);
-            transition:opacity .3s,transform .3s;
-            pointer-events:none;
-        ">
-    <i class="fas fa-arrow-up" style="font-size:14px;" aria-hidden="true"></i>
-</button>
-<script>
-(function(){
-    var btn = document.getElementById('dt-scroll-top');
-    if (!btn) return;
-    window.addEventListener('scroll', function(){
-        var show = window.scrollY > 400;
-        btn.style.opacity      = show ? '1' : '0';
-        btn.style.transform    = show ? 'translateY(0)' : 'translateY(12px)';
-        btn.style.pointerEvents= show ? 'auto' : 'none';
-    }, { passive: true });
 })();
 </script>
 
