@@ -100,7 +100,7 @@
     transform: translateY(-3px);
     box-shadow: 0 12px 32px rgba(0,0,0,.1);
 }
-.py-method--fedapay:hover { border-color: #ffd700; }
+.py-method--kkiapay:hover { border-color: #ffd700; }
 .py-method--stripe:hover  { border-color: #635bff; }
 
 .py-method-icon {
@@ -110,7 +110,7 @@
     font-size: 20px; color: var(--a-500);
     transition: background .25s;
 }
-.py-method--fedapay:hover .py-method-icon { background: rgba(255,215,0,.15); }
+.py-method--kkiapay:hover .py-method-icon { background: rgba(255,215,0,.15); }
 .py-method-icon--card { background: rgba(99,91,255,.08); border-color: rgba(99,91,255,.2); color: #635bff; }
 .py-method--stripe:hover .py-method-icon { background: rgba(99,91,255,.15); }
 
@@ -119,7 +119,7 @@
     font-size: .95rem; font-weight: 700; color: var(--f-900);
     margin-bottom: 2px; transition: color .2s;
 }
-.py-method--fedapay:hover .py-method-title { color: #8a6a00; }
+.py-method--kkiapay:hover .py-method-title { color: #8a6a00; }
 .py-method--stripe:hover  .py-method-title { color: #635bff; }
 .py-method-sub { font-size: .75rem; color: #9a8a78; margin-bottom: 8px; }
 

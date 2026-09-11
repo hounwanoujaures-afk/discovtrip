@@ -41,7 +41,7 @@ Puis **remplacez** le `index.php` copié par celui fourni dans `deploy/public_ht
 Sur le serveur (File Manager ou SSH), copiez `discovtrip_app/.env.production` vers `discovtrip_app/.env`, puis complétez les valeurs marquées `A_REMPLACER_PAR_...` :
 - `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` (étape 1)
 - `MAIL_PASSWORD` (mot de passe de la boîte `noreply@discovtrip.com` créée dans hPanel → Emails)
-- `FEDAPAY_SECRET_KEY`, `STRIPE_KEY`, `STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET` (vos vraies clés de production)
+- `KKIAPAY_SECRET, KKIAPAY_PUBLIC_KEY, KKIAPAY_PRIVATE_KEY, KKIAPAY_SANDBOX (mettre à false en prod)`, `STRIPE_KEY`, `STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET` (vos vraies clés de production)
 - `GROQ_API_KEY` (la **nouvelle** clé, après avoir révoqué l'ancienne sur console.groq.com)
 
 **Ne collez jamais ces valeurs ailleurs que directement sur le serveur** (pas dans le zip qu'on échange, pas dans Git).

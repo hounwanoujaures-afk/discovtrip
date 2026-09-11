@@ -396,7 +396,7 @@
         $whyCards = [
             ['icon' => 'fa-map-marked-alt', 'color' => 'ambre',  'title' => 'Guides locaux certifiés',  'desc' => 'Des experts nés et formés au Bénin. Chaque guide connaît chaque sentier, chaque histoire, chaque saveur authentique de son territoire.'],
             ['icon' => 'fa-leaf',            'color' => 'foret',  'title' => 'Tourisme responsable',      'desc' => 'Nous investissons dans les communautés locales. Chaque réservation contribue directement aux familles d\'accueil et aux artisans.'],
-            ['icon' => 'fa-shield-alt',      'color' => 'braise', 'title' => 'Sécurité & flexibilité',   'desc' => 'Annulation gratuite jusqu\'à 48h. Paiement sécurisé FedaPay & Stripe. Assistance locale 24/7 pendant tout votre séjour.'],
+            ['icon' => 'fa-shield-alt',      'color' => 'braise', 'title' => 'Sécurité & flexibilité',   'desc' => 'Annulation gratuite jusqu\'à 48h. Paiement sécurisé kkiapay & Stripe. Assistance locale 24/7 pendant tout votre séjour.'],
             ['icon' => 'fa-sliders-h',       'color' => 'ambre',  'title' => 'Expériences sur mesure',   'desc' => 'Durée, groupe, budget : chaque voyage s\'adapte à votre rythme. Nous personnalisons chaque détail pour une expérience unique.'],
         ];
         @endphp
@@ -428,7 +428,7 @@
         @php
         $steps = [
             ['num' => '01', 'icon' => 'fa-search',           'title' => 'Choisissez', 'desc' => 'Parcourez notre catalogue. Filtrez par destination, durée ou type d\'activité pour trouver l\'expérience qui vous correspond.'],
-            ['num' => '02', 'icon' => 'fa-calendar-check',   'title' => 'Réservez',   'desc' => 'Sélectionnez votre date, le nombre de participants et payez en toute sécurité avec FedaPay ou Stripe.'],
+            ['num' => '02', 'icon' => 'fa-calendar-check',   'title' => 'Réservez',   'desc' => 'Sélectionnez votre date, le nombre de participants et payez en toute sécurité avec kkiapay ou Stripe.'],
             ['num' => '03', 'icon' => 'fa-suitcase-rolling', 'title' => 'Vivez',      'desc' => 'Votre guide vous accueille sur place. Il ne vous reste plus qu\'à savourer chaque instant de votre aventure.'],
         ];
         @endphp

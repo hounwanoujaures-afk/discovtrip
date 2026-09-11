@@ -12,7 +12,7 @@ return [
     |--------------------------------------------------------------------------
     | Gateway par Défaut
     |--------------------------------------------------------------------------
-    | Gateways disponibles : 'stripe', 'fedapay', 'paypal'
+    | Gateways disponibles : 'stripe', 'kkiapay', 'paypal'
     */
     'default_gateway' => env('PAYMENT_DEFAULT_GATEWAY', 'stripe'),
 
@@ -23,7 +23,7 @@ return [
     */
     'enabled_gateways' => [
         'stripe' => true,
-        'fedapay' => true,
+        'kkiapay' => true,
         'paypal' => true,
     ],
 
@@ -42,15 +42,15 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | FedaPay (Mobile Money Afrique)
+    | KKiaPay (Mobile Money Afrique — MTN, Moov, WAVE)
     |--------------------------------------------------------------------------
     */
-    'fedapay' => [
-        'public_key' => env('FEDAPAY_PUBLIC_KEY'),
-        'secret_key' => env('FEDAPAY_SECRET_KEY'),
-        'environment' => env('FEDAPAY_ENVIRONMENT', 'sandbox'), // sandbox | live
-        'currency' => env('FEDAPAY_CURRENCY', 'XOF'),
-        'webhook_secret' => env('FEDAPAY_WEBHOOK_SECRET'),
+    'kkiapay' => [
+        'public_key'  => env('KKIAPAY_PUBLIC_KEY'),
+        'private_key' => env('KKIAPAY_PRIVATE_KEY'),
+        'secret'      => env('KKIAPAY_SECRET'),
+        'sandbox'     => env('KKIAPAY_SANDBOX', true),
+        'currency'    => env('KKIAPAY_CURRENCY', 'XOF'),
     ],
 
     /*
@@ -75,7 +75,7 @@ return [
             'name' => 'Franc CFA (BCEAO)',
             'symbol' => 'CFA',
             'decimals' => 0,
-            'gateways' => ['stripe', 'fedapay'],
+            'gateways' => ['stripe', 'kkiapay'],
         ],
         'EUR' => [
             'name' => 'Euro',
@@ -114,7 +114,7 @@ return [
             'percentage' => 2.9, // %
             'fixed' => 0, // Montant fixe
         ],
-        'fedapay' => [
+        'kkiapay' => [
             'percentage' => 2.5,
             'fixed' => 0,
         ],
@@ -131,7 +131,7 @@ return [
     */
     'webhooks' => [
         'stripe_url' => '/payment/webhook/stripe',
-        'fedapay_url' => '/payment/webhook/fedapay',
+        'kkiapay_url' => '/webhooks/kkiapay',
         'paypal_url' => '/payment/webhook/paypal',
     ],
 

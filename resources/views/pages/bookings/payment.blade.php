@@ -18,7 +18,7 @@
         : optional($booking->user)?->first_name ?? 'Client';
 
     $offerPayMode = $booking->offer->payment_mode ?? 'both';
-    $hasOnline    = in_array($offerPayMode, ['online', 'both']) && ($fedapayEnabled || $stripeEnabled);
+    $hasOnline    = in_array($offerPayMode, ['online', 'both']) && ($kkiapayEnabled || $stripeEnabled);
     $hasOnSite    = in_array($offerPayMode, ['on_site', 'both']);
 
     // URL show réservation (signée pour les invités)
@@ -88,10 +88,10 @@
 
                         <div class="py-methods">
 
-                            {{-- FedaPay — Mobile Money --}}
-                            @if($fedapayEnabled)
-                                <a href="{{ route('payment.fedapay.init', $booking->reference) }}"
-                                   class="py-method py-method--fedapay"
+                            {{-- KKiaPay — Mobile Money (widget JS) --
+                            @if($kkiapayEnabled)
+                                <button type="button" id="kkiapay-trigger"
+                                   class="py-method py-method--kkiapay"
                                    aria-label="Payer par Mobile Money — {{ number_format($booking->total_price, 0, ',', ' ') }} FCFA">
                                     <div class="py-method-icon" aria-hidden="true">
                                         <i class="fas fa-mobile-alt"></i>
@@ -113,7 +113,7 @@
                                     <div class="py-method-arrow" aria-hidden="true">
                                         <i class="fas fa-arrow-right"></i>
                                     </div>
-                                </a>
+                                </button>
                             @endif
 
                             {{-- Stripe — Carte bancaire --}}
@@ -329,3 +329,98 @@
 
 </div>
 @endsection
+@push('scripts')
+{{-- ══════════════════════════════════════════════════════
+     KKiaPay Widget — chargé uniquement si le bouton est présent
+══════════════════════════════════════════════════════════ --}}
+@if(isset($kkiapayEnabled) && $kkiapayEnabled)
+<script src="https://cdn.kkiapay.me/k.js" defer></script>
+<script>
+(function () {
+    'use strict';
+
+    const trigger = document.getElementById('kkiapay-trigger');
+    if (!trigger) return;
+
+    // Configuration passée depuis le serveur (pas de clé privée côté client)
+    const KK_CONFIG = {
+        amount    : {{ (int) $booking->total_price }},
+        key       : '{{ config('services.kkiapay.public_key') }}',
+        sandbox   : {{ config('services.kkiapay.sandbox', true) ? 'true' : 'false' }},
+        name      : '{{ addslashes(trim(($booking->guest_first_name ?? optional($booking->user)?->first_name ?? 'Client') . ' ' . ($booking->guest_last_name ?? optional($booking->user)?->last_name ?? ''))) }}',
+        email     : '{{ $booking->guest_email ?? optional($booking->user)?->email ?? '' }}',
+        phone     : '{{ $booking->guest_phone ?? '' }}',
+        reason    : 'DiscovTrip — {{ addslashes($booking->offer->title ?? '') }} ({{ $booking->reference }})',
+        // callback : URL de redirection après succès (optionnel — on gère via addSuccessListener)
+    };
+
+    // URL de vérification serveur (POST après succès widget)
+    const CALLBACK_URL = '{{ is_null($booking->user_id)
+        ? \Illuminate\Support\Facades\URL::signedRoute('payment.kkiapay.callback', ['reference' => $booking->reference])
+        : route('payment.kkiapay.callback', $booking->reference) }}';
+
+    // Ouvrir le widget au clic sur le bouton
+    trigger.addEventListener('click', function () {
+        if (typeof openKkiapayWidget === 'function') {
+            openKkiapayWidget(KK_CONFIG);
+        } else {
+            console.error('KKiaPay widget non chargé.');
+        }
+    });
+
+    // Écouter le succès du paiement
+    document.addEventListener('DOMContentLoaded', function () {
+        if (typeof addSuccessListener !== 'function') return;
+
+        addSuccessListener(function (response) {
+            const transactionId = response.transactionId;
+            if (!transactionId) return;
+
+            // Désactiver le bouton pour éviter les double-clics
+            trigger.disabled = true;
+            trigger.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Vérification en cours…';
+
+            // Envoyer le transactionId au serveur pour vérification
+            fetch(CALLBACK_URL, {
+                method : 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ transaction_id: transactionId }),
+            })
+            .then(function (res) {
+                // Le contrôleur retourne une redirection (302)
+                // → on suit la redirection manuellement
+                if (res.redirected) {
+                    window.location.href = res.url;
+                } else {
+                    return res.json().then(function (data) {
+                        if (data && data.redirect) {
+                            window.location.href = data.redirect;
+                        } else {
+                            window.location.reload();
+                        }
+                    });
+                }
+            })
+            .catch(function (err) {
+                console.error('Erreur vérification KKiaPay:', err);
+                alert('Paiement reçu, mais une erreur est survenue lors de la confirmation. Votre réservation sera vérifiée manuellement. Référence : {{ $booking->reference }}');
+            });
+        });
+
+        // Écouter les échecs
+        if (typeof addFailedListener === 'function') {
+            addFailedListener(function (err) {
+                console.warn('Paiement KKiaPay échoué:', err);
+                trigger.disabled = false;
+                trigger.innerHTML = '<div class="py-method-icon"><i class="fas fa-mobile-alt"></i></div><div class="py-method-body"><div class="py-method-title">Mobile Money</div><div class="py-method-sub">Réessayer</div></div><div class="py-method-arrow"><i class="fas fa-arrow-right"></i></div>';
+            });
+        }
+    });
+
+})();
+</script>
+@endif
+@endpush

@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::table('bookings', function (Blueprint $table) {
             if (! Schema::hasColumn('bookings', 'payment_method')) {
                 $table->string('payment_method')->nullable()->after('is_paid')
-                      ->comment('fedapay | stripe | on_site');
+                      ->comment('kkiapay | stripe | on_site');
             }
             if (! Schema::hasColumn('bookings', 'payment_status')) {
                 $table->string('payment_status')->nullable()->default('pending')->after('payment_method')
@@ -28,7 +28,7 @@ return new class extends Migration
             }
             if (! Schema::hasColumn('bookings', 'payment_transaction_id')) {
                 $table->string('payment_transaction_id')->nullable()->after('payment_reference')
-                      ->comment('ID payment_intent Stripe ou transaction FedaPay');
+                      ->comment('ID payment_intent Stripe ou transaction kkiapay');
             }
         });
     }

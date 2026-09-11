@@ -95,8 +95,7 @@ Route::middleware(['auth', EnsureUserIsNotBanned::class])
 
 Route::prefix('payment')->name('payment.')->group(function () {
     Route::get('/{reference}',                  [PaymentController::class, 'show'])->name('show');
-    Route::get('/{reference}/fedapay',          [PaymentController::class, 'initFedapay'])->name('fedapay.init');
-    Route::get('/{reference}/fedapay/callback', [PaymentController::class, 'callbackFedapay'])->name('fedapay.callback');
+    Route::post('/{reference}/kkiapay/callback', [PaymentController::class, 'callbackKkiapay'])->name('kkiapay.callback');
     Route::get('/{reference}/stripe',           [PaymentController::class, 'initStripe'])->name('stripe.init');
     Route::get('/{reference}/stripe/callback',  [PaymentController::class, 'callbackStripe'])->name('stripe.callback');
 });

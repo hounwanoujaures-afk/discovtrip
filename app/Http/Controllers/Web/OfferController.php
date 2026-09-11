@@ -186,7 +186,7 @@ class OfferController extends Controller
             ->get();
 
         // ── Disponibilité des modes de paiement
-        $gatewayReady = config('services.fedapay.secret_key')
+        $gatewayReady = config('services.kkiapay.secret_key')
                      || config('services.stripe.secret');
         $hasOnline    = in_array($offer->payment_mode ?? 'on_site', ['online', 'both']) && $gatewayReady;
         $hasOnSite    = in_array($offer->payment_mode ?? 'on_site', ['on_site', 'both']);

@@ -9,7 +9,7 @@ class PaymentSeeder extends Seeder {
         $this->command->info('💳 Seeding payments...');
         
         $paidBookings = Booking::where('is_paid', true)->get();
-        $gateways = ['stripe', 'fedapay'];
+        $gateways = ['stripe', 'kkiapay'];
         $methods = ['card', 'mobile_money'];
         
         foreach ($paidBookings as $booking) {

@@ -17,7 +17,7 @@ return new class extends Migration {
             $table->string('currency', 3);
             
             // Gateway
-            $table->enum('gateway', ['stripe', 'fedapay', 'paypal', 'wave']);
+            $table->enum('gateway', ['stripe', 'kkiapay', 'paypal', 'wave']);
             $table->enum('method', ['card', 'mobile_money', 'bank_transfer', 'paypal']);
             $table->enum('status', ['pending', 'succeeded', 'failed', 'refunded', 'partially_refunded'])->default('pending');
             

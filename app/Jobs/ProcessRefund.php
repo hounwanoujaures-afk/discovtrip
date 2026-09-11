@@ -52,7 +52,7 @@ class ProcessRefund implements ShouldQueue
             return;
         }
 
-        // ── Remboursement manuel (FedaPay, paiement sur place) ────────
+        // ── Remboursement manuel (kkiapay, paiement sur place) ────────
         // Marquer comme remboursé manuellement et notifier l'admin
         $this->processManualRefund($payment, $booking);
     }

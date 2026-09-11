@@ -1092,7 +1092,7 @@
                     <span>Mode de paiement</span>
                     <span>
                         @if($isOnSite) Sur place le jour J
-                        @elseif($booking->payment_method === 'fedapay') Mobile Money (FedaPay)
+                        @elseif($booking->payment_method === 'kkiapay') Mobile Money (kkiapay)
                         @else Carte bancaire (Stripe)
                         @endif
                     </span>

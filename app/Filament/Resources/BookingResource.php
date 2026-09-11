@@ -198,13 +198,13 @@ class BookingResource extends Resource
                     ->label('Paiement')
                     ->badge()
                     ->formatStateUsing(fn ($state) => match ($state) {
-                        'fedapay' => 'Mobile Money',
+                        'kkiapay' => 'Mobile Money',
                         'stripe'  => 'Carte',
                         'on_site' => 'Sur place',
                         default   => $state ?? '—',
                     })
                     ->color(fn ($state) => match ($state) {
-                        'fedapay' => 'warning',
+                        'kkiapay' => 'warning',
                         'stripe'  => 'info',
                         'on_site' => 'gray',
                         default   => 'gray',
