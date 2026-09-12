@@ -72,7 +72,7 @@ class DestinationsController extends Controller
             ->withCount(['offers' => fn ($q) => $q->where('status', 'published')])
             ->withMin(
                 ['offers as offers_min_base_price' => fn ($q) => $q->where('status', 'published')],
-                'base_price'
+                'price'
             )
             ->orderBy('featured_order', 'asc')
             ->orderBy('name', 'asc')
@@ -85,7 +85,7 @@ class DestinationsController extends Controller
             ->withCount(['offers' => fn ($q) => $q->where('status', 'published')])
             ->withMin(
                 ['offers as offers_min_base_price' => fn ($q) => $q->where('status', 'published')],
-                'base_price'
+                'price'
             )
             ->orderByDesc('is_featured')
             ->orderBy('featured_order', 'asc')
