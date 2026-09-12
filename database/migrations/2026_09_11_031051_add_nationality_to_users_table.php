@@ -8,15 +8,21 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // FIX : la table "users" (schéma consolidé) n'a pas de colonne "bio".
+        // On positionne après "avatar" à la place, et on ajoute une garde hasColumn.
         Schema::table('users', function (Blueprint $table) {
-            $table->string('nationality')->nullable()->after('bio');
+            if (!Schema::hasColumn('users', 'nationality')) {
+                $table->string('nationality')->nullable()->after('avatar');
+            }
         });
     }
 
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('nationality');
+            if (Schema::hasColumn('users', 'nationality')) {
+                $table->dropColumn('nationality');
+            }
         });
     }
 };

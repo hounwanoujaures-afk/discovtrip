@@ -4,43 +4,37 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * RECONSTRUCTION : le fichier original portait ce nom ("add_offer_id_to_spotlights_table")
+ * mais son code était un copier-coller de la migration des champs de paiement sur
+ * "bookings" — il ne touchait jamais réellement à "spotlights". Comme toutes les
+ * colonnes qu'il ajoutait existaient déjà (grâce aux gardes hasColumn), il ne plantait
+ * pas, mais la colonne "offer_id" n'a jamais été créée sur "spotlights".
+ *
+ * Ci-dessous une version qui fait ce que le nom du fichier annonce. Vérifie que
+ * "nullable + nullOnDelete" correspond bien à ce qu'attend ton code applicatif
+ * (ex. App\Models\Spotlight) avant de l'exécuter.
+ */
 return new class extends Migration
 {
-    /**
-     * Ajoute les colonnes de paiement sur bookings.
-     * Ces colonnes existent dans la DB locale mais n'avaient pas
-     * de migration dédiée dans le projet — corrigé ici pour Railway.
-     */
     public function up(): void
     {
-        Schema::table('bookings', function (Blueprint $table) {
-            if (! Schema::hasColumn('bookings', 'payment_method')) {
-                $table->string('payment_method')->nullable()->after('is_paid')
-                      ->comment('kkiapay | stripe | on_site');
-            }
-            if (! Schema::hasColumn('bookings', 'payment_status')) {
-                $table->string('payment_status')->nullable()->default('pending')->after('payment_method')
-                      ->comment('pending | paid | failed | refunded');
-            }
-            if (! Schema::hasColumn('bookings', 'payment_reference')) {
-                $table->string('payment_reference')->nullable()->after('payment_status')
-                      ->comment('ID transaction côté gateway');
-            }
-            if (! Schema::hasColumn('bookings', 'payment_transaction_id')) {
-                $table->string('payment_transaction_id')->nullable()->after('payment_reference')
-                      ->comment('ID payment_intent Stripe ou transaction kkiapay');
+        Schema::table('spotlights', function (Blueprint $table) {
+            if (!Schema::hasColumn('spotlights', 'offer_id')) {
+                $table->foreignId('offer_id')
+                      ->nullable()
+                      ->after('id')
+                      ->constrained('offers')
+                      ->nullOnDelete();
             }
         });
     }
 
     public function down(): void
     {
-        Schema::table('bookings', function (Blueprint $table) {
-            $cols = ['payment_method', 'payment_status', 'payment_reference', 'payment_transaction_id'];
-            foreach ($cols as $col) {
-                if (Schema::hasColumn('bookings', $col)) {
-                    $table->dropColumn($col);
-                }
+        Schema::table('spotlights', function (Blueprint $table) {
+            if (Schema::hasColumn('spotlights', 'offer_id')) {
+                $table->dropConstrainedForeignId('offer_id');
             }
         });
     }

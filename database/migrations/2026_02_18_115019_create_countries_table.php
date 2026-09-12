@@ -5,9 +5,8 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Migration originelle countries — rendue idempotente.
- * La table est désormais créée par 0000_00_00_000000_create_all_base_tables,
- * ce fichier ne fait rien si countries existe déjà.
+ * Migration countries 2026 — rendue idempotente.
+ * La table est créée par 0000_00_00_000000_create_all_base_tables.
  */
 return new class extends Migration
 {

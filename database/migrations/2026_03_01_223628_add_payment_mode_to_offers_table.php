@@ -12,12 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('offers', function (Blueprint $table) {
-            $table->enum('payment_mode', [
-                'on_site',   // Payer sur place uniquement
-                'online',    // Paiement en ligne uniquement
-                'both',      // Les deux au choix
-            ])->default('on_site')->after('is_instant_booking');
-        });
+            if (! Schema::hasColumn('offers', 'payment_mode')) {
+                $table->enum('payment_mode', ['online', 'on_site', 'both'])->default('both')->after('price');
+            }
+        });;
     }
 
     public function down(): void

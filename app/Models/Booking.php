@@ -34,7 +34,6 @@ class Booking extends Model
         // Paiement
         'is_paid',
         'paid_at',
-        'payment_id',
         'payment_method',
         'payment_status',
         'payment_reference',

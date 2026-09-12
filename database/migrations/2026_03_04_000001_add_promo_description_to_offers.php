@@ -10,7 +10,9 @@ return new class extends Migration
     {
         Schema::table('offers', function (Blueprint $table) {
             // Colonne description de la promo (texte libre)
-            $table->text('promo_description')->nullable()->after('promotion_ends_at');
+            if (! Schema::hasColumn('offers', 'promo_description')) {
+                $table->text('promo_description')->nullable()->after('id');
+            }
         });
     }
 

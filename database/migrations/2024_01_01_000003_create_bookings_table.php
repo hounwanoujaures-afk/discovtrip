@@ -36,7 +36,6 @@ return new class extends Migration {
             
             // Payment
             $table->boolean('is_paid')->default(false);
-            $table->foreignId('payment_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamp('paid_at')->nullable();
             
             // Cancellation
