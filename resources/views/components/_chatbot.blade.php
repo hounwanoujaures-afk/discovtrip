@@ -99,8 +99,8 @@
 <script>
 (function() {
     // ── Config ─────────────────────────────────────────────
-    const GROQ_API_KEY  = '{{ config('services.groq.api_key') }}';
-    const GROQ_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
+    const CHATBOT_ENDPOINT = '{{ route('chatbot.message') }}';
+    const CSRF_TOKEN = '{{ csrf_token() }}';
     const SYSTEM_PROMPT = "Tu es DiscovGuide, assistant IA de DiscovTrip, plateforme de voyage au Bénin (Afrique de l'Ouest). "
         + "Réponds en français, chaleureusement, en 2-3 phrases maximum. "
         + "Tu aides les visiteurs à découvrir le Bénin : destinations (Cotonou, Porto-Novo, Ouidah, Abomey, Ganvié, Natitingou...), "
@@ -196,20 +196,15 @@
         isTyping = true;
 
         try {
-            const res = await fetch(GROQ_ENDPOINT, {
+            const res = await fetch(CHATBOT_ENDPOINT, {
                 method: 'POST',
                 headers: {
-                    'Authorization': 'Bearer ' + GROQ_API_KEY,
-                    'Content-Type':  'application/json',
+                    'X-CSRF-TOKEN': CSRF_TOKEN,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                 },
                 body: JSON.stringify({
-                    model:       'llama-3.1-8b-instant',
-                    max_tokens:  300,
-                    temperature: 0.7,
-                    messages: [
-                        { role: 'system', content: SYSTEM_PROMPT },
-                        ...conversation.slice(-6)
-                    ],
+                    messages: conversation.slice(-6),
                 }),
             });
 
@@ -222,7 +217,7 @@
             }
 
             const data    = await res.json();
-            const content = data.choices?.[0]?.message?.content ?? 'Réessayez dans un instant.';
+            const content = data.content ?? 'Réessayez dans un instant.';
             appendMessage('assistant', content);
             conversation.push({ role: 'assistant', content });
 

@@ -164,3 +164,6 @@ Route::middleware(['auth', EnsureUserIsNotBanned::class])
      ->name('wishlist.toggle');
 
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+Route::post('/api/chatbot/message', [\App\Http\Controllers\Web\ChatbotController::class, 'sendMessage'])
+     ->middleware('throttle:20,1')
+     ->name('chatbot.message');

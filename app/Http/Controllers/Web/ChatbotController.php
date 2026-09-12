@@ -4,59 +4,59 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class ChatbotController extends Controller
 {
-    private function buildSystemPrompt(): string
-    {
-        return "Tu es DiscovGuide, assistant IA de DiscovTrip, plateforme de voyage au Bénin (Afrique de l'Ouest). "
-             . "Réponds en français, chaleureusement, en 2-3 phrases maximum. "
-             . "Tu aides les visiteurs à découvrir le Bénin : destinations, expériences culturelles, nature, gastronomie. "
-             . "Infos pratiques : visa à l'arrivée (50 USD), monnaie FCFA (1 EUR = 655 FCFA), meilleure période novembre-mars. "
-             . "Si la question ne concerne pas le Bénin ou le voyage, redirige poliment vers DiscovTrip.";
-    }
+    private const SYSTEM_PROMPT = "Tu es DiscovGuide, assistant IA de DiscovTrip, plateforme de voyage au Bénin (Afrique de l'Ouest). "
+        . "Réponds en français, chaleureusement, en 2-3 phrases maximum. "
+        . "Tu aides les visiteurs à découvrir le Bénin : destinations (Cotonou, Porto-Novo, Ouidah, Abomey, Ganvié, Natitingou...), "
+        . "expériences culturelles, nature, gastronomie, vaudou, histoire du Dahomey. "
+        . "Infos pratiques : visa à l'arrivée (50 USD), monnaie FCFA (1 EUR = 655 FCFA), meilleure période novembre-mars. "
+        . "Si la question ne concerne pas le Bénin ou le voyage, redirige poliment vers DiscovTrip.";
 
-    public function chat(Request $request)
+    public function sendMessage(Request $request): JsonResponse
     {
-        $request->validate([
-            'messages'           => ['required', 'array', 'max:10'],
-            'messages.*.role'    => ['required', 'in:user,assistant'],
-            'messages.*.content' => ['required', 'string', 'max:1000'],
+        $validated = $request->validate([
+            'messages'   => ['required', 'array', 'max:6'],
+            'messages.*.role'    => ['required', 'string', 'in:user,assistant'],
+            'messages.*.content' => ['required', 'string', 'max:2000'],
         ]);
 
         $apiKey = config('services.groq.key');
 
-        if (!$apiKey) {
-            return response()->json(['error' => 'Service indisponible.'], 503);
+        if (empty($apiKey)) {
+            Log::error('Chatbot: GROQ_API_KEY manquante');
+            return response()->json(['error' => 'Service temporairement indisponible.'], 503);
         }
 
         try {
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $apiKey,
-                'Content-Type'  => 'application/json',
-            ])->timeout(20)->post('https://api.groq.com/openai/v1/chat/completions', [
-                'model'       => 'llama-3.1-8b-instant',
-                'max_tokens'  => 250,
-                'temperature' => 0.7,
-                'messages'    => array_merge(
-                    [['role' => 'system', 'content' => $this->buildSystemPrompt()]],
-                    array_slice($request->messages, -4)
-                ),
-            ]);
+            $response = Http::withToken($apiKey)
+                ->timeout(30)
+                ->post('https://api.groq.com/openai/v1/chat/completions', [
+                    'model'       => config('services.groq.model', 'llama-3.3-70b-versatile'),
+                    'max_tokens'  => 300,
+                    'temperature' => 0.7,
+                    'messages'    => array_merge(
+                        [['role' => 'system', 'content' => self::SYSTEM_PROMPT]],
+                        $validated['messages']
+                    ),
+                ]);
 
-            if ($response->failed()) {
-                return response()->json(['error' => 'Erreur ' . $response->status()], 502);
+            if (! $response->successful()) {
+                Log::warning('Chatbot: erreur Groq', ['status' => $response->status(), 'body' => $response->body()]);
+                return response()->json(['error' => 'Erreur du service IA.'], 502);
             }
 
-            return response()->json([
-                'message' => $response->json('choices.0.message.content') ?? 'Réessayez.'
-            ]);
+            $content = $response->json('choices.0.message.content') ?? 'Réessayez dans un instant.';
 
-        } catch (\Illuminate\Http\Client\ConnectionException $e) {
-            return response()->json(['error' => 'Timeout: ' . $e->getMessage()], 504);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Erreur: ' . $e->getMessage()], 500);
+            return response()->json(['content' => $content]);
+
+        } catch (\Throwable $e) {
+            Log::error('Chatbot: exception', ['message' => $e->getMessage()]);
+            return response()->json(['error' => 'Erreur du service IA.'], 500);
         }
     }
 }
