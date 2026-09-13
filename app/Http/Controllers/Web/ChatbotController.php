@@ -36,7 +36,7 @@ class ChatbotController extends Controller
             $response = Http::withToken($apiKey)
                 ->timeout(30)
                 ->post('https://api.groq.com/openai/v1/chat/completions', [
-                    'model'       => config('services.groq.model', 'llama-3.3-70b-versatile'),
+                    'model'       => config('services.groq.model', 'openai/gpt-oss-20b'),
                     'max_tokens'  => 300,
                     'temperature' => 0.7,
                     'messages'    => array_merge(

@@ -187,7 +187,7 @@ return [
     // ──────────────────────────────────────────────
     'groq' => [
         'key'   => env('GROQ_API_KEY'),
-        'model' => env('GROQ_MODEL', 'llama-3.3-70b-versatile'),
+        'model' => env('GROQ_MODEL', 'openai/gpt-oss-20b'),
         //
         // Autres modèles disponibles sur Groq (gratuits) :
         //   'llama-3.1-8b-instant'     → ultra-rapide, qualité correcte
