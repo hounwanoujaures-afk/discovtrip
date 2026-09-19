@@ -142,13 +142,20 @@
                     Annuler
                 </button>
                 @endif
+                @if($booking->canReview())
+                <button type="button" class="bk-btn bk-btn--view"
+                        onclick="openReviewModal('{{ $booking->id }}','{{ addslashes($offer?->title ?? '') }}')">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    Laisser un avis
+                </button>
+                @endif
             </div>
 
         </article>
         @empty
         <div class="acl-empty" role="status">
             <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--tx-muted)" stroke-width="1.2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            <p>Aucune réservation @if(request('status'))pour ce filtre@endif</p>
+            <p>Aucune réservation {{ request('status') ? 'pour ce filtre' : '' }}</p>
             <a href="{{ route('offers.index') }}" class="acl-empty-cta">Explorer les expériences</a>
         </div>
         @endforelse
@@ -195,10 +202,57 @@
     </div>
 </div>
 
+{{-- Modal avis --}}
+<div class="acl-modal-bg" id="review-modal-bg" role="dialog" aria-modal="true" aria-labelledby="review-modal-title">
+    <div class="acl-modal">
+        <button class="acl-modal-x" onclick="closeReviewModal()" aria-label="Fermer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <div class="acl-modal-icon" aria-hidden="true">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </div>
+        <h3 class="acl-modal-title" id="review-modal-title">Laisser un avis</h3>
+        <p class="acl-modal-offer" id="review-modal-offer">—</p>
+        <form id="review-modal-form" method="POST" action="" style="margin-top:1rem">
+            @csrf
+            <div style="display:flex;gap:6px;justify-content:center;font-size:1.6rem;margin-bottom:1rem" id="review-stars">
+                @for($i = 1; $i <= 5; $i++)
+                <label style="cursor:pointer;color:var(--tx-muted)" data-star="{{ $i }}">
+                    <input type="radio" name="rating" value="{{ $i }}" style="display:none" required>&#9733;
+                </label>
+                @endfor
+            </div>
+            <textarea name="comment" rows="4" minlength="10" maxlength="1000" required placeholder="Partagez votre experience (10 caracteres minimum)..." style="width:100%;padding:.7rem;border-radius:8px;border:1px solid var(--bd-light);font-family:inherit;resize:vertical"></textarea>
+            <div class="acl-modal-btns" style="margin-top:1rem">
+                <button type="button" class="acl-modal-btn acl-modal-btn--keep" onclick="closeReviewModal()">Annuler</button>
+                <button type="submit" class="acl-modal-btn acl-modal-btn--confirm" style="flex:1">Envoyer mon avis</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
 <script>
+function openReviewModal(bookingId, title) {
+    document.getElementById('review-modal-offer').textContent = title;
+    document.getElementById('review-modal-form').action = '/bookings/' + bookingId + '/review';
+    document.getElementById('review-modal-bg').classList.add('acl-modal-bg--open');
+    document.body.style.overflow = 'hidden';
+}
+function closeReviewModal() {
+    document.getElementById('review-modal-bg').classList.remove('acl-modal-bg--open');
+    document.body.style.overflow = '';
+}
+document.querySelectorAll('#review-stars label').forEach(function (label) {
+    label.addEventListener('click', function () {
+        var val = parseInt(this.dataset.star, 10);
+        document.querySelectorAll('#review-stars label').forEach(function (l) {
+            l.style.color = parseInt(l.dataset.star, 10) <= val ? '#D4A20F' : 'var(--tx-muted)';
+        });
+    });
+});
 function openCancelModal(ref, title, date) {
     document.getElementById('modal-offer').textContent = title;
     document.getElementById('modal-date').textContent  = date;

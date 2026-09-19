@@ -4,6 +4,7 @@
 @section('description', 'Explorez toutes nos expériences authentiques au Bénin. Culture, gastronomie, nature, aventure. Guides locaux certifiés.')
 
 @push('styles')
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
     @vite('resources/css/pages/offers/index.css')
 @endpush
 
@@ -367,6 +368,8 @@ $wishlistIds = Auth::check()
              disparaît si filtre promo actif (tout est déjà promo dans la grille) --}}
         @if($promoOffers->count() > 0 && !request('promo'))
         <section class="opl-promo-zone" aria-label="Offres promotionnelles">
+
+            {{-- HEADER --}}
             <div class="opl-promo-header">
                 <div class="opl-promo-eyebrow">Offres à durée limitée</div>
                 <h2 class="opl-promo-title">
@@ -379,110 +382,125 @@ $wishlistIds = Auth::check()
                 </p>
             </div>
 
-            <div class="opl-promo-grid">
-                @foreach($promoOffers as $idx => $offer)
-                @php
-                    $rCount     = (int)($offer->reviews_count ?? 0);
-                    $hasReviews = $rCount >= 5;
-                    $wishlisted = in_array($offer->id, $wishlistIds);
-                    $discount   = round((1 - $offer->promotional_price / $offer->base_price) * 100);
-                @endphp
-                <article class="opl-promo-card"
-                         style="animation-delay: {{ $idx * 0.08 }}s">
+            @php
+                $featuredPromo = $promoOffers->first();
+                $otherPromos   = $promoOffers->skip(1);
+                $featuredDiscount = round((1 - $featuredPromo->promotional_price / $featuredPromo->base_price) * 100);
+            @endphp
 
-                    <a href="{{ route('offers.show', $offer->slug) }}"
-                       class="opl-promo-card-img"
-                       tabindex="-1" aria-hidden="true">
-                        @if($offer->cover_image)
-                            <img src="{{ asset('storage/'.$offer->cover_image) }}"
-                                 alt="{{ $offer->title }}"
-                                 loading="eager" width="600" height="450">
-                        @else
-                            @php $gr = $gradients[$offer->category] ?? ['#D4E8C8','#8BBF6E']; @endphp
-                            <div class="opl-promo-card-img-ph"
-                                 style="background:linear-gradient(135deg,{{ $gr[0] }},{{ $gr[1] }});">
-                                {{ $emojis[$offer->category] ?? '✨' }}
-                            </div>
+            {{-- OFFRE PHARE --}}
+            <div class="opl-promo-featured">
+                <a href="{{ route('offers.show', $featuredPromo->slug) }}" class="opl-promo-featured-img" tabindex="-1">
+                    @if($featuredPromo->cover_image)
+                        <img src="{{ asset('storage/'.$featuredPromo->cover_image) }}"
+                             alt="{{ $featuredPromo->title }}"
+                             loading="eager" width="800" height="500">
+                    @else
+                        @php $gr = $gradients[$featuredPromo->category] ?? ['#D4E8C8','#8BBF6E']; @endphp
+                        <div class="opl-promo-card-img-ph"
+                             style="background:linear-gradient(135deg,{{ $gr[0] }},{{ $gr[1] }});">
+                            {{ $emojis[$featuredPromo->category] ?? '✨' }}
+                        </div>
+                    @endif
+                    <div class="opl-promo-featured-overlay"></div>
+                    <div class="opl-promo-featured-badge">−{{ $featuredDiscount }}%</div>
+                    <div class="opl-promo-featured-content">
+                        <div class="opl-promo-featured-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            {{ $featuredPromo->city->name }} · {{ $featuredPromo->category_label }}
+                        </div>
+                        <h3 class="opl-promo-featured-title">{{ $featuredPromo->title }}</h3>
+                        @if($featuredPromo->short_description)
+                            <p class="opl-promo-featured-desc">
+                                {{ Str::limit($featuredPromo->short_description, 140) }}
+                            </p>
                         @endif
-                        <div class="opl-promo-card-img-overlay" aria-hidden="true"></div>
-                        <div class="opl-discount-badge" aria-label="Réduction {{ $discount }}%">
-                            −{{ $discount }}%
-                        </div>
-                    </a>
-
-                    <div class="opl-promo-card-body">
-                        <div>
-                            <div class="opl-promo-card-location">
-                                <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
-                                {{ $offer->city->name }} · {{ $offer->category_label }}
+                        <div class="opl-promo-featured-price-row">
+                            <div>
+                                <span class="opl-promo-featured-old">
+                                    {{ number_format($featuredPromo->base_price, 0, '', ' ') }} FCFA
+                                </span>
+                                <span class="opl-promo-featured-new">
+                                    {{ number_format($featuredPromo->promotional_price, 0, '', ' ') }} FCFA
+                                </span>
                             </div>
-                            <h3 class="opl-promo-card-title">
-                                <a href="{{ route('offers.show', $offer->slug) }}">{{ $offer->title }}</a>
-                            </h3>
-                            @if($offer->short_description)
-                                <p class="opl-promo-card-desc">
-                                    {{ Str::limit($offer->short_description, 120) }}
-                                </p>
-                            @endif
-                            <div class="opl-promo-card-meta">
-                                @if($hasReviews)
-                                    <div class="opl-stars" aria-hidden="true">
-                                        @php
-                                        $litC = min((int)round($offer->average_rating ?? 0), 5);
-                                        echo str_repeat('<i class="fas fa-star lit"></i>', $litC) . str_repeat('<i class="fas fa-star"></i>', 5 - $litC);
-                                    @endphp
-                                    </div>
-                                    <span class="opl-promo-rating">
-                                        {{ number_format($offer->average_rating ?? 0, 1) }}
-                                        ({{ $rCount }})
-                                    </span>
-                                @else
-                                    <span style="font-size:11px;color:var(--f-500);font-weight:600">✨ Nouveau</span>
-                                @endif
-                                <div class="opl-promo-duration">
-                                    <i class="fas fa-clock" aria-hidden="true"></i>
-                                    @php
-                                        $h = floor($offer->duration_minutes / 60);
-                                        $m = $offer->duration_minutes % 60;
-                                    @endphp
-                                    {{ $h }}h{{ $m > 0 ? $m.'min' : '' }}
-                                </div>
-                            </div>
-                        </div>
-                        <div>
-                            <span class="opl-promo-price-from">À partir de</span>
-                            <span class="opl-promo-price-old">
-                                {{ number_format($offer->base_price, 0, '', ' ') }} FCFA
-                            </span>
-                            <div class="opl-promo-price-new">
-                                {{ number_format($offer->promotional_price, 0, '', ' ') }}
-                                <span class="opl-promo-currency">FCFA</span>
-                            </div>
-                            <div class="opl-promo-price-eur">
-                                ≈ {{ number_format($offer->promotional_price / config('discovtrip.eur_rate', 655.957), 0, '', ' ') }} €
-                            </div>
-                            <a href="{{ route('offers.show', $offer->slug) }}" class="opl-promo-cta">
-                                Réserver <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                            <a href="{{ route('offers.show', $featuredPromo->slug) }}" class="opl-promo-featured-cta">
+                                Réserver <i class="fas fa-arrow-right"></i>
                             </a>
                         </div>
                     </div>
-
-                    {{-- Wishlist --}}
-                    @auth
-                    <button class="opl-promo-wish-btn dt-wish-btn {{ $wishlisted ? 'active' : '' }}"
-                            data-wishlist-id="{{ $offer->id }}"
-                            aria-label="{{ $wishlisted ? 'Retirer des favoris' : 'Ajouter aux favoris' }}">
-                        <i class="{{ $wishlisted ? 'fas' : 'far' }} fa-heart" aria-hidden="true"></i>
-                    </button>
-                    @else
-                    <a href="{{ route('login') }}" class="opl-promo-wish-btn" aria-label="Connexion requise">
-                        <i class="far fa-heart" aria-hidden="true"></i>
-                    </a>
-                    @endauth
-
-                </article>
-                @endforeach
+                </a>
+                @auth
+                <button class="opl-promo-wish-btn dt-wish-btn {{ in_array($featuredPromo->id, $wishlistIds) ? 'active' : '' }}"
+                        data-wishlist-id="{{ $featuredPromo->id }}"
+                        aria-label="Favoris">
+                    <i class="{{ in_array($featuredPromo->id, $wishlistIds) ? 'fas' : 'far' }} fa-heart"></i>
+                </button>
+                @endauth
             </div>
+
+            {{-- CARROUSEL DES AUTRES PROMOS --}}
+            @if($otherPromos->count() > 0)
+            <div class="opl-promo-carousel-wrap">
+                <div class="swiper opl-promo-swiper">
+                    <div class="swiper-wrapper">
+                        @foreach($otherPromos as $offer)
+                        @php
+                            $rCount     = (int)($offer->reviews_count ?? 0);
+                            $hasReviews = $rCount >= 5;
+                            $wishlisted = in_array($offer->id, $wishlistIds);
+                            $discount   = round((1 - $offer->promotional_price / $offer->base_price) * 100);
+                        @endphp
+                        <div class="swiper-slide">
+                            <article class="opl-promo-slide-card">
+                                <a href="{{ route('offers.show', $offer->slug) }}" class="opl-promo-slide-img">
+                                    @if($offer->cover_image)
+                                        <img src="{{ asset('storage/'.$offer->cover_image) }}"
+                                             alt="{{ $offer->title }}"
+                                             loading="lazy" width="400" height="280">
+                                    @else
+                                        @php $gr = $gradients[$offer->category] ?? ['#D4E8C8','#8BBF6E']; @endphp
+                                        <div class="opl-promo-card-img-ph"
+                                             style="background:linear-gradient(135deg,{{ $gr[0] }},{{ $gr[1] }});font-size:40px;display:flex;align-items:center;justify-content:center;height:100%">
+                                            {{ $emojis[$offer->category] ?? '✨' }}
+                                        </div>
+                                    @endif
+                                    <div class="opl-promo-slide-badge">−{{ $discount }}%</div>
+                                </a>
+                                <div class="opl-promo-slide-body">
+                                    <div class="opl-promo-card-location">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        {{ $offer->city->name }}
+                                    </div>
+                                    <h3 class="opl-promo-slide-title">
+                                        <a href="{{ route('offers.show', $offer->slug) }}">{{ $offer->title }}</a>
+                                    </h3>
+                                    <div class="opl-promo-slide-price">
+                                        <span class="opl-promo-slide-old">{{ number_format($offer->base_price, 0, '', ' ') }}</span>
+                                        <span class="opl-promo-slide-new">{{ number_format($offer->promotional_price, 0, '', ' ') }} FCFA</span>
+                                    </div>
+                                    <a href="{{ route('offers.show', $offer->slug) }}" class="opl-promo-slide-cta">
+                                        Voir l'offre <i class="fas fa-arrow-right"></i>
+                                    </a>
+                                </div>
+                                @auth
+                                <button class="opl-promo-wish-btn dt-wish-btn {{ $wishlisted ? 'active' : '' }}"
+                                        data-wishlist-id="{{ $offer->id }}"
+                                        aria-label="Favoris">
+                                    <i class="{{ $wishlisted ? 'fas' : 'far' }} fa-heart"></i>
+                                </button>
+                                @endauth
+                            </article>
+                        </div>
+                        @endforeach
+                    </div>
+                    <div class="swiper-pagination opl-promo-pagination"></div>
+                    <div class="swiper-button-prev opl-swiper-prev"></div>
+                    <div class="swiper-button-next opl-swiper-next"></div>
+                </div>
+            </div>
+            @endif
+
         </section>
         @endif
 
@@ -832,6 +850,32 @@ $wishlistIds = Auth::check()
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (document.querySelector('.opl-promo-swiper')) {
+        new Swiper('.opl-promo-swiper', {
+            slidesPerView: 1.15,
+            spaceBetween: 16,
+            centeredSlides: false,
+            grabCursor: true,
+            pagination: {
+                el: '.opl-promo-pagination',
+                clickable: true,
+            },
+            navigation: {
+                nextEl: '.opl-swiper-next',
+                prevEl: '.opl-swiper-prev',
+            },
+            breakpoints: {
+                640: { slidesPerView: 1.8, spaceBetween: 20 },
+                900: { slidesPerView: 2.4, spaceBetween: 24 },
+                1200: { slidesPerView: 3, spaceBetween: 24 },
+            },
+        });
+    }
+});
+</script>
 <script>
 /* ── Compteur animé ── */
 (function () {

@@ -41,8 +41,6 @@ class SitemapController extends Controller
             ['loc' => '/about',                 'priority' => '0.6', 'changefreq' => 'monthly'],
             ['loc' => '/contact',               'priority' => '0.6', 'changefreq' => 'monthly'],
             ['loc' => '/faq',                   'priority' => '0.7', 'changefreq' => 'monthly'],
-            ['loc' => '/conditions-utilisation','priority' => '0.3', 'changefreq' => 'yearly'],
-            ['loc' => '/confidentialite',       'priority' => '0.3', 'changefreq' => 'yearly'],
             ['loc' => '/annulation-gratuite',   'priority' => '0.5', 'changefreq' => 'yearly'],
         ];
 

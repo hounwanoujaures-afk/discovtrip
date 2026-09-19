@@ -20,10 +20,10 @@ return [
     'contact_email' => env('DISCOVTRIP_CONTACT_EMAIL', 'contact@discovtrip.com'),
 
     // Numéro WhatsApp affiché (format lisible)  : +229 01 XX XX XX XX
-    'whatsapp_phone' => env('DISCOVTRIP_WHATSAPP_PHONE', '+229 01 00 00 00 00'),
+    'whatsapp_phone' => env('DISCOVTRIP_WHATSAPP_PHONE', '+229 01 51 43 74 71'),
 
     // Même numéro sans espaces ni + — utilisé dans les liens wa.me/XXXXXXXXXX
-    'whatsapp_phone_raw' => env('DISCOVTRIP_WHATSAPP_PHONE_RAW', '22901000000'),
+    'whatsapp_phone_raw' => env('DISCOVTRIP_WHATSAPP_PHONE_RAW', '2290151437471'),
 
     /*
     |--------------------------------------------------------------------------

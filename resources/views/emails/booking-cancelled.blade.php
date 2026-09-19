@@ -1,100 +1,74 @@
 <x-emails.layout
-    title="Réservation annulée #{{ $booking->reference }}"
-    preheader="Votre réservation {{ $booking->offer->title }} a été annulée. Informations sur votre remboursement.">
+    title="Réservation annulée · #{{ $booking->reference }}"
+    preheader="Votre réservation {{ $booking->offer->title }} a été annulée.">
 
-    {{-- Hero --}}
-    <div class="email-hero" style="background: linear-gradient(135deg, #2a1a12 0%, #5a2a18 100%);">
-        <div style="font-size:44px; margin-bottom:16px;">❌</div>
-        <h1 class="email-hero-title">
-            Réservation<br><em>annulée</em>
-        </h1>
-        <p class="email-hero-sub">
-            Votre réservation a bien été annulée. Voici les détails.
-        </p>
-    </div>
+{{-- HERO --}}
+<tr><td style="background:#1A1A1A;padding:48px 40px;text-align:center;">
+  <p style="margin:0 0 16px;font-size:40px;line-height:1;">❌</p>
+  <h1 style="margin:0 0 10px;font-size:24px;font-weight:700;color:#FFFFFF;line-height:1.3;letter-spacing:-0.3px;">
+    Réservation <span style="color:#E05C5C;">annulée</span>
+  </h1>
+  <p style="margin:0;font-size:14px;color:rgba(255,255,255,0.5);line-height:1.6;">
+    Votre annulation a bien été prise en compte.
+  </p>
+</td></tr>
 
-    {{-- Body --}}
-    <div class="email-body">
-        <p class="email-greeting">Bonjour {{ $booking->user->first_name }},</p>
-        <p class="email-p">
-            Nous confirmons l'annulation de votre réservation.
-            Voici le récapitulatif :
-        </p>
+{{-- BODY --}}
+<tr><td style="background:#FFFFFF;padding:40px 40px 16px;">
+  <p style="margin:0 0 8px;font-size:16px;font-weight:600;color:#1A1A1A;">Bonjour {{ $booking->user->first_name }},</p>
+  <p style="margin:0 0 32px;font-size:15px;line-height:1.8;color:#555555;">
+    Votre réservation a bien été annulée. Nous espérons vous revoir bientôt pour vivre une nouvelle expérience en Afrique de l'Ouest.
+  </p>
 
-        {{-- Récap --}}
-        <div class="email-card" style="border-left-color: #c93923;">
-            <div class="email-card-title" style="color:#c93923;">📋 Réservation annulée</div>
-            <div class="email-row">
-                <span class="email-row-label">Référence</span>
-                <span class="email-row-value" style="font-family:monospace;">{{ $booking->reference }}</span>
-            </div>
-            <div class="email-row">
-                <span class="email-row-label">Expérience</span>
-                <span class="email-row-value">{{ $booking->offer->title }}</span>
-            </div>
-            <div class="email-row">
-                <span class="email-row-label">Date prévue</span>
-                <span class="email-row-value">{{ $booking->booking_date->locale('fr')->isoFormat('D MMMM YYYY') }}</span>
-            </div>
-            <div class="email-row">
-                <span class="email-row-label">Montant payé</span>
-                <span class="email-row-value">{{ number_format($booking->total_price, 0, ',', ' ') }} FCFA</span>
-            </div>
-            <div class="email-row">
-                <span class="email-row-label">Annulée par</span>
-                <span class="email-row-value">
-                    {{ $booking->cancelled_by === 'user' ? 'Vous' : 'DiscovTrip' }}
-                </span>
-            </div>
-        </div>
+  {{-- RECAP CARD --}}
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #E8E8E8;border-radius:6px;overflow:hidden;margin-bottom:24px;">
+    <tr><td style="background:#F7F7F7;padding:12px 20px;border-bottom:1px solid #E8E8E8;">
+      <p style="margin:0;font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:#999999;">Réservation annulée</p>
+    </td></tr>
+    <tr><td style="padding:0;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr style="border-bottom:1px solid #F0F0F0;">
+          <td style="padding:14px 20px;font-size:13px;color:#888888;">Référence</td>
+          <td style="padding:14px 20px;text-align:right;">
+            <span style="font-family:'Courier New',monospace;font-weight:700;color:#D4A20F;background:#FFF8E6;padding:3px 8px;border-radius:3px;">{{ $booking->reference }}</span>
+          </td>
+        </tr>
+        <tr style="border-bottom:1px solid #F0F0F0;">
+          <td style="padding:14px 20px;font-size:13px;color:#888888;">Expérience</td>
+          <td style="padding:14px 20px;font-size:13px;color:#1A1A1A;font-weight:600;text-align:right;">{{ $booking->offer->title }}</td>
+        </tr>
+        <tr style="border-bottom:1px solid #F0F0F0;">
+          <td style="padding:14px 20px;font-size:13px;color:#888888;">Date prévue</td>
+          <td style="padding:14px 20px;font-size:13px;color:#1A1A1A;font-weight:600;text-align:right;">{{ \Carbon\Carbon::parse($booking->booking_date)->locale('fr')->isoFormat('D MMMM YYYY') }}</td>
+        </tr>
+        <tr>
+          <td style="padding:14px 20px;font-size:13px;color:#888888;">Statut</td>
+          <td style="padding:14px 20px;text-align:right;">
+            <span style="background:#FDECEA;color:#B03520;padding:3px 10px;border-radius:3px;font-size:11px;font-weight:600;">Annulée</span>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
 
-        {{-- Remboursement --}}
-        @php
-            $hoursBeforeBooking = now()->diffInHours($booking->booking_date, false);
-            $refundRate = $hoursBeforeBooking >= 48 ? 100 : ($hoursBeforeBooking >= 24 ? 50 : 0);
-            $refundAmount = ($booking->total_price * $refundRate) / 100;
-        @endphp
+  {{-- CTA --}}
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:32px;">
+    <tr><td align="center">
+      <a href="{{ route('offers.index') }}"
+         style="display:inline-block;padding:15px 44px;background:#1A1A1A;color:#FFFFFF;text-decoration:none;border-radius:5px;font-size:14px;font-weight:600;">
+        Explorer d'autres expériences
+      </a>
+    </td></tr>
+  </table>
 
-        @if($booking->cancelled_by === 'admin' || $booking->cancelled_by === 'guide')
-        <div class="email-alert email-alert--green">
-            💚 <strong>Remboursement intégral en cours.</strong>
-            Le guide ou DiscovTrip est à l'origine de cette annulation.
-            Vous serez remboursé de <strong>{{ number_format($booking->total_price, 0, ',', ' ') }} FCFA</strong> sous 48h.
-        </div>
-        @elseif($refundRate === 100)
-        <div class="email-alert email-alert--green">
-            💚 <strong>Remboursement intégral.</strong>
-            Annulation effectuée plus de 48h avant l'expérience.
-            Vous serez remboursé de <strong>{{ number_format($refundAmount, 0, ',', ' ') }} FCFA</strong> sous 5 à 10 jours ouvrés.
-        </div>
-        @elseif($refundRate === 50)
-        <div class="email-alert email-alert--amber">
-            ⚠️ <strong>Remboursement partiel (50%).</strong>
-            Annulation entre 24h et 48h avant l'expérience.
-            Vous serez remboursé de <strong>{{ number_format($refundAmount, 0, ',', ' ') }} FCFA</strong> sous 5 à 10 jours ouvrés.
-        </div>
-        @else
-        <div class="email-alert email-alert--red">
-            ❌ <strong>Aucun remboursement.</strong>
-            Annulation effectuée moins de 24h avant l'expérience.
-            Consultez notre <a href="{{ route('cancellation') }}" style="color:#b03520;font-weight:600;">politique d'annulation</a>.
-        </div>
-        @endif
-
-        <div class="email-cta-wrap">
-            <a href="{{ route('destinations') }}" class="email-cta">
-                🗺️ Découvrir d'autres expériences
-            </a>
-        </div>
-
-        <div class="email-divider"></div>
-
-        <p class="email-p" style="font-size:13px; color:#9a8a78;">
-            Une question sur votre remboursement ?
-            <a href="{{ route('contact') }}" style="color:#c49a0d;font-weight:600;">Contactez-nous</a>
-            ou consultez notre
-            <a href="{{ route('cancellation') }}" style="color:#c49a0d;font-weight:600;">politique d'annulation</a>.
-        </p>
-    </div>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #F0F0F0;">
+    <tr><td align="center" style="padding-top:24px;padding-bottom:32px;">
+      <p style="margin:0;font-size:12px;color:#AAAAAA;">
+        Des questions sur votre annulation ?&nbsp;
+        <a href="{{ route('contact') }}" style="color:#D4A20F;font-weight:600;text-decoration:none;">Nous contacter</a>
+      </p>
+    </td></tr>
+  </table>
+</td></tr>
 
 </x-emails.layout>

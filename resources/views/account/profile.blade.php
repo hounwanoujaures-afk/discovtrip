@@ -85,7 +85,7 @@
                         </label>
                         <input class="prf-input" type="tel" id="phone" name="phone"
                                value="{{ old('phone', $user->phone) }}"
-                               placeholder="+229 01 00 00 00 00"
+                               placeholder="+229 01 51 43 74 71"
                                autocomplete="tel"
                                @error('phone') aria-invalid="true" aria-describedby="err-phone" @enderror>
                         @error('phone')

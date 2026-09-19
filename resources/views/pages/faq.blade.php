@@ -132,7 +132,7 @@
             </div>
 
             {{-- WhatsApp --}}
-            <a href="https://wa.me/22901000000"
+            <a href="https://wa.me/2290151437471"
                target="_blank" rel="noopener noreferrer"
                class="fq-whatsapp">
                 <div class="fq-whatsapp-icon">

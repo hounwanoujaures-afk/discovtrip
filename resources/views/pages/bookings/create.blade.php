@@ -4,6 +4,7 @@
     @vite('resources/css/pages/bookings/create.css')
 @endpush
 
+@section('robots', 'noindex, nofollow')
 @section('title', 'Réserver — ' . $offer->title . ' — DiscovTrip')
 
 @section('content')
@@ -102,7 +103,7 @@
                                         <input type="tel" name="guest_phone"
                                                class="bk-input"
                                                value="{{ old('guest_phone') }}"
-                                               placeholder="+229 01 00 00 00 00" autocomplete="tel">
+                                               placeholder="+229 01 51 43 74 71" autocomplete="tel">
                                     </div>
                                 </div>
                                 <div class="bk-guest-hint">

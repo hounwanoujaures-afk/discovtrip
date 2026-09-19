@@ -103,7 +103,7 @@ class HomeController extends Controller
                     ->where('is_active', true)
                     ->where(fn ($q) => $q->whereNull('starts_at')->orWhere('starts_at', '<=', now()))
                     ->where(fn ($q) => $q->whereNull('ends_at')->orWhere('ends_at', '>=', now()))
-                    ->orderBy('order')
+                    ->orderBy('sort_order')
                     ->first();
             } catch (\Throwable $e) {
                 Log::warning('HomeController.spotlight: ' . $e->getMessage());
@@ -116,7 +116,7 @@ class HomeController extends Controller
             try {
                 return Testimonial::query()
                     ->where('is_published', true)
-                    ->orderBy('order')
+                    ->orderBy('sort_order')
                     ->limit(3)
                     ->get();
             } catch (\Throwable $e) {

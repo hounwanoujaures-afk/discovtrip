@@ -85,7 +85,7 @@
         "url": "{{ config('app.url') }}",
         "logo": "{{ asset('images/logo.png') }}",
         "image": "{{ asset('images/og-default.jpg') }}",
-        "telephone": "+22901000000",
+        "telephone": "+2290151437471",
         "email": "contact@discovtrip.com",
         "address": {
             "@@type": "PostalAddress",
@@ -99,8 +99,8 @@
         },
         "priceRange": "5 000 – 100 000 FCFA",
         "sameAs": [
-            "https://www.facebook.com/discovtrip",
-            "https://www.instagram.com/discovtrip"
+            "https://www.facebook.com/profile.php?id=61573881397875",
+            "https://www.instagram.com/discovtrip?stkn=MTdhN2gydm0yOTBybg%3D%3D&utm_source=qr"
         ]
     }
     </script>
@@ -369,10 +369,11 @@
                 </p>
                 <div class="dt-footer-socials" aria-label="Réseaux sociaux">
                     @foreach([
-                        ['icon' => 'fa-instagram',   'href' => 'https://www.instagram.com/discovtrip', 'label' => 'Instagram'],
-                        ['icon' => 'fa-facebook-f',  'href' => 'https://www.facebook.com/discovtrip', 'label' => 'Facebook'],
+                        ['icon' => 'fa-instagram',   'href' => 'https://www.instagram.com/discovtrip?stkn=MTdhN2gydm0yOTBybg%3D%3D&utm_source=qr', 'label' => 'Instagram'],
+                        ['icon' => 'fa-facebook-f',  'href' => 'https://www.facebook.com/profile.php?id=61573881397875', 'label' => 'Facebook'],
                         ['icon' => 'fa-whatsapp',   'href' =>  'https://wa.me/2290XXXXXXXXX',           'label' => 'WhatsApp'],
-                        ['icon' => 'fa-twitter',     'href' => '#', 'label' => 'Twitter / X'],
+                        ['icon' => 'fa-twitter',     'href' => 'https://x.com/discov_trip?s=20', 'label' => 'Twitter / X'],
+                        ['icon' => 'fa-tiktok',      'href' => 'https://www.tiktok.com/@discovtrip', 'label' => 'TikTok'],
                         ['icon' => 'fa-linkedin-in', 'href' => '#', 'label' => 'LinkedIn'],
                         ['icon' => 'fa-youtube',     'href' => '#', 'label' => 'YouTube'],
                     ] as $social)
@@ -433,7 +434,7 @@
                         </div>
                         <div>
                             <p class="dt-footer-contact-label">Téléphone</p>
-                            <a href="tel:+22901000000" class="dt-footer-contact-value">+229 01 00 00 00 00</a>
+                            <a href="tel:+2290151437471" class="dt-footer-contact-value">+229 01 51 43 74 71</a>
                         </div>
                     </div>
                     <div class="dt-footer-contact-row">

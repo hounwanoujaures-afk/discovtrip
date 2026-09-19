@@ -167,3 +167,8 @@ Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap')
 Route::post('/api/chatbot/message', [\App\Http\Controllers\Web\ChatbotController::class, 'sendMessage'])
      ->middleware('throttle:20,1')
      ->name('chatbot.message');
+
+
+Route::middleware('auth')
+    ->post('/bookings/{booking}/review', [\App\Http\Controllers\Web\ReviewController::class, 'store'])
+    ->name('bookings.review');

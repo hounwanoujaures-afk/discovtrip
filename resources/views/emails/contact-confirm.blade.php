@@ -41,8 +41,8 @@
         <div class="email-alert email-alert--green">
             💡 <strong>Besoin d'une réponse urgente ?</strong>
             Contactez-nous directement sur
-            <a href="https://wa.me/22901000000" style="color:#1F6B44;font-weight:700;">WhatsApp</a>
-            ou appelez le <a href="tel:+22901000000" style="color:#1F6B44;font-weight:700;">+229 01 00 00 00 00</a>.
+            <a href="https://wa.me/2290151437471" style="color:#1F6B44;font-weight:700;">WhatsApp</a>
+            ou appelez le <a href="tel:+2290151437471" style="color:#1F6B44;font-weight:700;">+229 01 51 43 74 71</a>.
         </div>
 
         <div class="email-divider"></div>

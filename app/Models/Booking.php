@@ -188,7 +188,7 @@ class Booking extends Model
      */
     public function canReview(): bool
     {
-        return $this->status === 'completed'
+        return in_array($this->status, ['completed', 'confirmed'])
             && Carbon::parse($this->booking_date)->isPast()
             && ! $this->review()->exists();
     }

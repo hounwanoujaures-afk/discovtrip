@@ -358,24 +358,26 @@ class OfferResource extends Resource
                     FileUpload::make('cover_image')
                         ->label('Image de couverture')
                         ->image()
+                        ->acceptedFileTypes(['image/jpeg', 'image/png'])
                         ->directory('offers/covers')
                         ->disk('public')
                         ->maxSize(2048)
                         ->imageEditor()
                         ->imageEditorAspectRatios(['16:9','4:3'])
-                        ->helperText('Format recommandé : 1200x800px'),
+                        ->helperText('Format recommandé : 1200x800px (JPG ou PNG)'),
 
                     FileUpload::make('gallery')
                         ->label('Galerie d\'images')
                         ->multiple()
                         ->image()
+                        ->acceptedFileTypes(['image/jpeg', 'image/png'])
                         ->directory('offers/gallery')
                         ->disk('public')
                         ->maxSize(2048)
                         ->maxFiles(10)
                         ->imageEditor()
                         ->reorderable()
-                        ->helperText('Jusqu\'à 10 images')
+                        ->helperText('Jusqu\'à 10 images (JPG ou PNG)')
                         ->columnSpanFull(),
 
                     TextInput::make('video_url')
@@ -517,7 +519,8 @@ class OfferResource extends Resource
                     TextInput::make('min_age')
                         ->label('Âge minimum')
                         ->numeric()
-                        ->minValue(0),
+                        ->minValue(0)
+                        ->default(0),
 
                     Select::make('difficulty_level')
                         ->label('Difficulté')

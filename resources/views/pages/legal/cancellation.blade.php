@@ -168,7 +168,7 @@
                         <div class="lg-contact-label">Support DiscovTrip</div>
                         <div class="lg-contact-val">
                             <a href="{{ route('contact') }}">Formulaire de contact</a> ·
-                            <a href="https://wa.me/22901000000">WhatsApp</a> ·
+                            <a href="https://wa.me/2290151437471">WhatsApp</a> ·
                             <a href="mailto:contact@discovtrip.com">contact@discovtrip.com</a>
                         </div>
                     </div>

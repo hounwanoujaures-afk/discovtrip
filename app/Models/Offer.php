@@ -263,4 +263,59 @@ class Offer extends Model
             ->whereNotNull('promotion_ends_at')
             ->where('promotion_ends_at', '<', now());
     }
+
+    public function priceTiers()
+    {
+        return $this->hasMany(OfferPriceTier::class);
+    }
+
+    public function circuitCities()
+    {
+        return $this->belongsToMany(City::class, 'city_offer')
+            ->withPivot('visit_order')
+            ->orderByPivot('visit_order');
+    }
+
+    public function priceForGroupSize(int $participants): ?int
+    {
+        if (!$this->is_circuit) {
+            return $this->base_price;
+        }
+
+        $tier = $this->priceTiers()
+            ->where('min_participants', '<=', $participants)
+            ->where(function ($q) use ($participants) {
+                $q->whereNull('max_participants')->orWhere('max_participants', '>=', $participants);
+            })
+            ->orderByDesc('min_participants')
+            ->first();
+
+        return $tier?->price_per_person;
+    }
+
+    public function startingPricePerPerson(): ?int
+    {
+        if (!$this->is_circuit) {
+            return $this->base_price;
+        }
+
+        return $this->priceTiers()
+            ->orderByDesc('min_participants')
+            ->value('price_per_person');
+    }
+
+    public function priceTiersForBookingWidget(): array
+    {
+        return $this->priceTiers()
+            ->orderBy('min_participants')
+            ->get(['min_participants', 'max_participants', 'price_per_person'])
+            ->map(fn ($t) => [
+                'min'   => $t->min_participants,
+                'max'   => $t->max_participants,
+                'price' => $t->price_per_person,
+            ])
+            ->values()
+            ->toArray();
+    }
+
 }

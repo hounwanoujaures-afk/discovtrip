@@ -15,3 +15,5 @@ use Illuminate\Support\Facades\Schedule;
 if (app()->isProduction()) {
     Schedule::command('optimize')->weekly()->mondays()->at('05:00');
 }
+Schedule::command('bookings:complete-passed')->dailyAt('02:00');
+Schedule::command('bookings:send-thankyou')->dailyAt('10:00');

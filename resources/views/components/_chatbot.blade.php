@@ -6,7 +6,7 @@
 
 {{-- ════ BOUTON FLOTTANT ════ --}}
 <button id="chatbot-trigger" aria-label="Ouvrir l'assistant DiscovTrip" style="
-    position:fixed;bottom:28px;right:28px;z-index:9998;
+    position:fixed;bottom:100px;right:20px;z-index:9998;
     width:60px;height:60px;border-radius:50%;
     background:linear-gradient(135deg,#D4924D,#B8751A,#8C5A0E);
     border:none;cursor:pointer;

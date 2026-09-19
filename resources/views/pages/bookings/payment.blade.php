@@ -310,7 +310,7 @@
                     Voir ma réservation
                 </a>
 
-                <a href="https://wa.me/{{ config('discovtrip.whatsapp_phone_raw', '22901000000') }}?text={{ urlencode('Bonjour, j\'ai une question sur le paiement de ma réservation ' . $booking->reference) }}"
+                <a href="https://wa.me/{{ config('discovtrip.whatsapp_phone_raw', '2290151437471') }}?text={{ urlencode('Bonjour, j\'ai une question sur le paiement de ma réservation ' . $booking->reference) }}"
                    target="_blank" rel="noopener noreferrer"
                    class="py-wa">
                     <div class="py-wa-icon" aria-hidden="true">

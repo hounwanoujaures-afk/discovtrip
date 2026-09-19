@@ -41,13 +41,13 @@
 
             {{-- Contacts directs --}}
             <div class="ct-hero-contacts">
-                <a href="tel:+22901000000" class="ct-hero-contact">
+                <a href="tel:+2290151437471" class="ct-hero-contact">
                     <span class="ct-hero-contact-icon">
                         <i class="fas fa-phone" aria-hidden="true"></i>
                     </span>
                     <div>
                         <span class="ct-hero-contact-label">Appelez-nous</span>
-                        <span class="ct-hero-contact-val">+229 01 00 00 00 00</span>
+                        <span class="ct-hero-contact-val">+229 01 51 43 74 71</span>
                     </div>
                 </a>
                 <div class="ct-hero-contact-sep" aria-hidden="true"></div>
@@ -324,7 +324,7 @@
             </div>
 
             {{-- Encart WhatsApp --}}
-            <a href="https://wa.me/22901000000"
+            <a href="https://wa.me/2290151437471"
                target="_blank" rel="noopener noreferrer"
                class="ct-whatsapp">
                 <div class="ct-whatsapp-icon">
@@ -339,11 +339,11 @@
 
             {{-- Coordonnées discrètes --}}
             <div class="ct-contact-list">
-                <a href="tel:+22901000000" class="ct-contact-item">
+                <a href="tel:+2290151437471" class="ct-contact-item">
                     <span class="ct-contact-icon"><i class="fas fa-phone" aria-hidden="true"></i></span>
                     <div>
                         <div class="ct-contact-label">Téléphone</div>
-                        <div class="ct-contact-val">+229 01 00 00 00 00</div>
+                        <div class="ct-contact-val">+229 01 51 43 74 71</div>
                     </div>
                 </a>
                 <a href="mailto:contact@discovtrip.com" class="ct-contact-item">

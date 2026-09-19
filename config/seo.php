@@ -89,7 +89,7 @@ return [
             ]),
             'contactPoint' => [
                 '@type'           => 'ContactPoint',
-                'telephone'       => env('DISCOVTRIP_WHATSAPP_PHONE', '+229 01 00 00 00 00'),
+                'telephone'       => env('DISCOVTRIP_WHATSAPP_PHONE', '+229 01 51 43 74 71'),
                 'contactType'     => 'customer service',
                 'areaServed'      => 'BJ',
                 'availableLanguage' => ['French', 'English'],

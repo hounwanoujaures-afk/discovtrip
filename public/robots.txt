@@ -9,6 +9,7 @@ Disallow: /admin/
 Disallow: /filament/
 Disallow: /payment/
 Disallow: /api/
+Disallow: /offers/*/reserver
 Disallow: /bookings/*/cancel
 Disallow: /bookings/*/pdf
 
@@ -26,5 +27,5 @@ Disallow: /vendor/
 # Sitemap
 Sitemap: https://discovtrip.com/sitemap.xml
 
-# Délai de crawl recommandé (optionnel)
+# Délai de crawl recommandé
 Crawl-delay: 1
