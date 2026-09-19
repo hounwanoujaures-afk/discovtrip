@@ -43,6 +43,14 @@ class SanitizeInput
 
     public function handle(Request $request, Closure $next): Response
     {
+        // Exempter les requêtes internes Livewire — leur payload (snapshot/checksum
+        // encodés en base64) ne doit jamais être modifié, sous peine de casser
+        // la vérification d intégrité de Livewire (ex: padding base64 avec "="
+        // pouvant matcher un faux positif XSS).
+        if ($request->is("livewire/*") || $request->is("livewire-*/*")) {
+            return $next($request);
+        }
+
         $this->sanitizeRequest($request);
         return $next($request);
     }
