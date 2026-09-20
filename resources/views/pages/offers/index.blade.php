@@ -4,7 +4,7 @@
 @section('description', 'Explorez toutes nos expériences authentiques au Bénin. Culture, gastronomie, nature, aventure. Guides locaux certifiés.')
 
 @push('styles')
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.css">
     @vite('resources/css/pages/offers/index.css')
 @endpush
 
@@ -530,6 +530,11 @@ $wishlistIds = Auth::check()
                 $isSoldOut  = isset($offer->available_spots) && $offer->available_spots === 0;
                 $wishlisted = in_array($offer->id, $wishlistIds);
                 $showScoreBar = $hasReviews && $avgRating >= 4.8;
+                // ── Promo : badge % et prix barré visibles même hors de la zone promo
+                // (notamment quand le filtre "promo" est actif et masque opl-promo-zone)
+                $isPromo    = !empty($offer->promotional_price) && $offer->promotional_price < $offer->base_price;
+                $discount   = $isPromo ? round((1 - $offer->promotional_price / $offer->base_price) * 100) : 0;
+                $displayPrice = $isPromo ? $offer->promotional_price : $offer->base_price;
             @endphp
 
             <article class="opl-card {{ $isSoldOut ? 'soldout' : '' }} dt-reveal"
@@ -576,6 +581,9 @@ $wishlistIds = Auth::check()
                         <div class="opl-soldout-badge">Complet · Bientôt disponible</div>
                     @else
                         <div class="opl-card-badges">
+                            @if($isPromo)
+                                <span class="opl-badge opl-badge-promo">🔥 −{{ $discount }}%</span>
+                            @endif
                             @if($offer->is_featured)
                                 <span class="opl-badge opl-badge-featured">⭐ Coup de cœur</span>
                             @elseif($rCount < 5)
@@ -649,11 +657,14 @@ $wishlistIds = Auth::check()
                         <div class="opl-card-price-block">
                             <span class="opl-price-from">À partir de</span>
                             <div class="opl-price">
-                                {{ number_format($offer->base_price, 0, '', ' ') }}
+                                @if($isPromo)
+                                    <span class="opl-price-old-mini">{{ number_format($offer->base_price, 0, '', ' ') }}</span>
+                                @endif
+                                {{ number_format($displayPrice, 0, '', ' ') }}
                                 <span class="opl-currency">FCFA</span>
                             </div>
                             <div class="opl-price-eur">
-                                ≈ {{ number_format($offer->base_price / config('discovtrip.eur_rate', 655.957), 0, '', ' ') }} €
+                                ≈ {{ number_format($displayPrice / config('discovtrip.eur_rate', 655.957), 0, '', ' ') }} €
                             </div>
                         </div>
                         @if($isSoldOut)
@@ -850,7 +861,7 @@ $wishlistIds = Auth::check()
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     if (document.querySelector('.opl-promo-swiper')) {

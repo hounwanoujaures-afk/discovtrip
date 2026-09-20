@@ -1,6 +1,6 @@
 /* ============================================================
    offers/index.css — DiscovTrip · Liste des expériences
-   Préfixe : .opl-   Version 4 — hero 2 photos + corrections
+   Préfixe : .opl-   Version 5 — hero 2 photos + badge promo dans la grille
    ============================================================ */
 
 
@@ -724,6 +724,8 @@
 .opl-badge-featured { background: rgba(212,162,15,.9); color: var(--tx-primary); }
 .opl-badge-new      { background: rgba(255,255,255,.92); color: var(--tx-primary); }
 .opl-badge-instant  { background: rgba(9,9,10,.72); color: var(--a-300); font-size: 11px; }
+/* Badge promo — même dégradé rouge que la zone promo, visible partout (y compris grille filtrée) */
+.opl-badge-promo    { background: linear-gradient(135deg, var(--b-500), var(--b-700)); color: #fff; }
 .opl-urgency {
     position: absolute; bottom: 10px; left: 10px; z-index: 10;
     background: rgba(192,50,26,.9); color: white;
@@ -782,6 +784,12 @@
 .opl-card.soldout .opl-price { color: var(--tx-soft); }
 .opl-currency { font-family: var(--font-body); font-size: 11px; font-weight: 400; color: var(--tx-soft); font-style: normal; }
 .opl-price-eur { font-size: 10px; color: var(--tx-soft); margin-top: 1px; }
+/* Prix barré (ancien prix) affiché devant le prix promo dans la grille catalogue */
+.opl-price-old-mini {
+    font-size: 12px; font-weight: 400; font-style: normal;
+    text-decoration: line-through; color: var(--tx-soft);
+    margin-right: 4px;
+}
 
 .opl-card-cta {
     display: inline-flex; align-items: center; gap: 6px;
