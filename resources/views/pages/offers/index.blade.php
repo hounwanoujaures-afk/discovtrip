@@ -4,7 +4,6 @@
 @section('description', 'Explorez toutes nos expériences authentiques au Bénin. Culture, gastronomie, nature, aventure. Guides locaux certifiés.')
 
 @push('styles')
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     @vite('resources/css/pages/offers/index.css')
 @endpush
 
@@ -439,10 +438,10 @@ $wishlistIds = Auth::check()
                 @endauth
             </div>
 
-            {{-- CARROUSEL DES AUTRES PROMOS — Materialize --}}
+            {{-- CARROUSEL DES AUTRES PROMOS — scroll natif, sans dépendance --}}
             @if($otherPromos->count() > 0)
             <div class="opl-promo-carousel-wrap">
-                <div class="carousel opl-mz-carousel" id="opl-mz-carousel">
+                <div class="opl-mz-track" id="opl-mz-track">
                     @foreach($otherPromos as $offer)
                     @php
                         $rCount     = (int)($offer->reviews_count ?? 0);
@@ -450,7 +449,7 @@ $wishlistIds = Auth::check()
                         $wishlisted = in_array($offer->id, $wishlistIds);
                         $discount   = round((1 - $offer->promotional_price / $offer->base_price) * 100);
                     @endphp
-                    <div class="carousel-item opl-mz-card">
+                    <div class="opl-mz-card">
                         <a href="{{ route('offers.show', $offer->slug) }}" class="opl-mz-img">
                             @if($offer->cover_image)
                                 <img src="{{ asset('storage/'.$offer->cover_image) }}"
@@ -862,24 +861,23 @@ $wishlistIds = Auth::check()
 @endsection
 
 @push('scripts')
-<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    var el = document.getElementById('opl-mz-carousel');
-    if (el) {
-        var mzInstance = M.Carousel.init(el, {
-            duration: 200,
-            dist: 0,
-            shift: 0,
-            padding: 20,
-            numVisible: window.innerWidth < 640 ? 1 : (window.innerWidth < 1024 ? 2 : 3),
-            indicators: false,
-            fullWidth: false,
-        });
+    var track = document.getElementById('opl-mz-track');
+    if (track) {
         var prevBtn = document.getElementById('opl-mz-prev');
         var nextBtn = document.getElementById('opl-mz-next');
-        if (prevBtn) prevBtn.addEventListener('click', function () { mzInstance.prev(); });
-        if (nextBtn) nextBtn.addEventListener('click', function () { mzInstance.next(); });
+        var scrollAmount = function () {
+            var card = track.querySelector('.opl-mz-card');
+            var gap = 16;
+            return card ? card.offsetWidth + gap : 260;
+        };
+        if (prevBtn) prevBtn.addEventListener('click', function () {
+            track.scrollBy({ left: -scrollAmount(), behavior: 'smooth' });
+        });
+        if (nextBtn) nextBtn.addEventListener('click', function () {
+            track.scrollBy({ left: scrollAmount(), behavior: 'smooth' });
+        });
     }
 });
 </script>

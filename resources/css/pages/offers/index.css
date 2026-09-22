@@ -1071,27 +1071,29 @@
     box-shadow: 0 8px 20px rgba(0,0,0,.2);
 }
 
-/* Carrousel — Materialize */
+/* Carrousel — scroll horizontal natif, sans librairie */
 .opl-promo-carousel-wrap {
     position: relative;
     padding-bottom: 8px;
 }
 
-/* Materialize donne à .carousel une hauteur/perspective par défaut ;
-   on la neutralise pour appliquer nos propres dimensions. */
-.opl-mz-carousel {
-    height: 320px;
-    overflow: hidden;
-    position: relative;
-    perspective: none;
+.opl-mz-track {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    padding: 4px 4px 12px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
 }
-.opl-mz-carousel .carousel-item {
-    width: 260px;
-    height: 300px;
-}
+.opl-mz-track::-webkit-scrollbar { display: none; }
 
 .opl-mz-card {
     position: relative;
+    flex: 0 0 260px;
+    width: 260px;
+    scroll-snap-align: start;
     background: #fff;
     border: 1.5px solid rgba(192,50,26,.1);
     border-radius: 16px;
@@ -1180,5 +1182,5 @@
     .opl-promo-featured-title { font-size: 20px; }
     .opl-promo-featured-desc { display: none; }
     .opl-promo-featured-new { font-size: 22px; }
-    .opl-mz-carousel .carousel-item { width: 220px; }
+    .opl-mz-card { flex-basis: 220px; width: 220px; }
 }
