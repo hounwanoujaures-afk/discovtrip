@@ -4,7 +4,7 @@
 @section('description', 'Explorez toutes nos expériences authentiques au Bénin. Culture, gastronomie, nature, aventure. Guides locaux certifiés.')
 
 @push('styles')
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     @vite('resources/css/pages/offers/index.css')
 @endpush
 
@@ -439,64 +439,65 @@ $wishlistIds = Auth::check()
                 @endauth
             </div>
 
-            {{-- CARROUSEL DES AUTRES PROMOS --}}
+            {{-- CARROUSEL DES AUTRES PROMOS — Materialize --}}
             @if($otherPromos->count() > 0)
             <div class="opl-promo-carousel-wrap">
-                <div class="swiper opl-promo-swiper">
-                    <div class="swiper-wrapper">
-                        @foreach($otherPromos as $offer)
-                        @php
-                            $rCount     = (int)($offer->reviews_count ?? 0);
-                            $hasReviews = $rCount >= 5;
-                            $wishlisted = in_array($offer->id, $wishlistIds);
-                            $discount   = round((1 - $offer->promotional_price / $offer->base_price) * 100);
-                        @endphp
-                        <div class="swiper-slide">
-                            <article class="opl-promo-slide-card">
-                                <a href="{{ route('offers.show', $offer->slug) }}" class="opl-promo-slide-img">
-                                    @if($offer->cover_image)
-                                        <img src="{{ asset('storage/'.$offer->cover_image) }}"
-                                             alt="{{ $offer->title }}"
-                                             loading="lazy" width="400" height="280">
-                                    @else
-                                        @php $gr = $gradients[$offer->category] ?? ['#D4E8C8','#8BBF6E']; @endphp
-                                        <div class="opl-promo-card-img-ph"
-                                             style="background:linear-gradient(135deg,{{ $gr[0] }},{{ $gr[1] }});font-size:40px;display:flex;align-items:center;justify-content:center;height:100%">
-                                            {{ $emojis[$offer->category] ?? '✨' }}
-                                        </div>
-                                    @endif
-                                    <div class="opl-promo-slide-badge">−{{ $discount }}%</div>
-                                </a>
-                                <div class="opl-promo-slide-body">
-                                    <div class="opl-promo-card-location">
-                                        <i class="fas fa-map-marker-alt"></i>
-                                        {{ $offer->city->name }}
-                                    </div>
-                                    <h3 class="opl-promo-slide-title">
-                                        <a href="{{ route('offers.show', $offer->slug) }}">{{ $offer->title }}</a>
-                                    </h3>
-                                    <div class="opl-promo-slide-price">
-                                        <span class="opl-promo-slide-old">{{ number_format($offer->base_price, 0, '', ' ') }}</span>
-                                        <span class="opl-promo-slide-new">{{ number_format($offer->promotional_price, 0, '', ' ') }} FCFA</span>
-                                    </div>
-                                    <a href="{{ route('offers.show', $offer->slug) }}" class="opl-promo-slide-cta">
-                                        Voir l'offre <i class="fas fa-arrow-right"></i>
-                                    </a>
+                <div class="carousel opl-mz-carousel" id="opl-mz-carousel">
+                    @foreach($otherPromos as $offer)
+                    @php
+                        $rCount     = (int)($offer->reviews_count ?? 0);
+                        $hasReviews = $rCount >= 5;
+                        $wishlisted = in_array($offer->id, $wishlistIds);
+                        $discount   = round((1 - $offer->promotional_price / $offer->base_price) * 100);
+                    @endphp
+                    <div class="carousel-item opl-mz-card">
+                        <a href="{{ route('offers.show', $offer->slug) }}" class="opl-mz-img">
+                            @if($offer->cover_image)
+                                <img src="{{ asset('storage/'.$offer->cover_image) }}"
+                                     alt="{{ $offer->title }}"
+                                     loading="lazy" width="400" height="280">
+                            @else
+                                @php $gr = $gradients[$offer->category] ?? ['#D4E8C8','#8BBF6E']; @endphp
+                                <div class="opl-mz-img-ph"
+                                     style="background:linear-gradient(135deg,{{ $gr[0] }},{{ $gr[1] }});">
+                                    {{ $emojis[$offer->category] ?? '✨' }}
                                 </div>
-                                @auth
-                                <button class="opl-promo-wish-btn dt-wish-btn {{ $wishlisted ? 'active' : '' }}"
-                                        data-wishlist-id="{{ $offer->id }}"
-                                        aria-label="Favoris">
-                                    <i class="{{ $wishlisted ? 'fas' : 'far' }} fa-heart"></i>
-                                </button>
-                                @endauth
-                            </article>
+                            @endif
+                            <div class="opl-mz-badge">−{{ $discount }}%</div>
+                        </a>
+                        <div class="opl-mz-body">
+                            <div class="opl-mz-location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                {{ $offer->city->name }}
+                            </div>
+                            <h3 class="opl-mz-title">
+                                <a href="{{ route('offers.show', $offer->slug) }}">{{ $offer->title }}</a>
+                            </h3>
+                            <div class="opl-mz-price">
+                                <span class="opl-mz-old">{{ number_format($offer->base_price, 0, '', ' ') }}</span>
+                                <span class="opl-mz-new">{{ number_format($offer->promotional_price, 0, '', ' ') }} FCFA</span>
+                            </div>
+                            <a href="{{ route('offers.show', $offer->slug) }}" class="opl-mz-cta">
+                                Voir l'offre <i class="fas fa-arrow-right"></i>
+                            </a>
                         </div>
-                        @endforeach
+                        @auth
+                        <button class="opl-promo-wish-btn dt-wish-btn {{ $wishlisted ? 'active' : '' }}"
+                                data-wishlist-id="{{ $offer->id }}"
+                                aria-label="Favoris">
+                            <i class="{{ $wishlisted ? 'fas' : 'far' }} fa-heart"></i>
+                        </button>
+                        @endauth
                     </div>
-                    <div class="swiper-pagination opl-promo-pagination"></div>
-                    <div class="swiper-button-prev opl-swiper-prev"></div>
-                    <div class="swiper-button-next opl-swiper-next"></div>
+                    @endforeach
+                </div>
+                <div class="opl-mz-nav">
+                    <button type="button" id="opl-mz-prev" aria-label="Précédent">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button type="button" id="opl-mz-next" aria-label="Suivant">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
                 </div>
             </div>
             @endif
@@ -861,29 +862,24 @@ $wishlistIds = Auth::check()
 @endsection
 
 @push('scripts')
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/11.0.5/swiper-bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    if (document.querySelector('.opl-promo-swiper')) {
-        new Swiper('.opl-promo-swiper', {
-            slidesPerView: 1.15,
-            spaceBetween: 16,
-            centeredSlides: false,
-            grabCursor: true,
-            pagination: {
-                el: '.opl-promo-pagination',
-                clickable: true,
-            },
-            navigation: {
-                nextEl: '.opl-swiper-next',
-                prevEl: '.opl-swiper-prev',
-            },
-            breakpoints: {
-                640: { slidesPerView: 1.8, spaceBetween: 20 },
-                900: { slidesPerView: 2.4, spaceBetween: 24 },
-                1200: { slidesPerView: 3, spaceBetween: 24 },
-            },
+    var el = document.getElementById('opl-mz-carousel');
+    if (el) {
+        var mzInstance = M.Carousel.init(el, {
+            duration: 200,
+            dist: 0,
+            shift: 0,
+            padding: 20,
+            numVisible: window.innerWidth < 640 ? 1 : (window.innerWidth < 1024 ? 2 : 3),
+            indicators: false,
+            fullWidth: false,
         });
+        var prevBtn = document.getElementById('opl-mz-prev');
+        var nextBtn = document.getElementById('opl-mz-next');
+        if (prevBtn) prevBtn.addEventListener('click', function () { mzInstance.prev(); });
+        if (nextBtn) nextBtn.addEventListener('click', function () { mzInstance.next(); });
     }
 });
 </script>
