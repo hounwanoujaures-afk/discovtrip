@@ -4,6 +4,7 @@
 @section('description', 'Explorez toutes nos expériences authentiques au Bénin. Culture, gastronomie, nature, aventure. Guides locaux certifiés.')
 
 @push('styles')
+
     @vite('resources/css/pages/offers/index.css')
 @endpush
 
@@ -368,7 +369,6 @@ $wishlistIds = Auth::check()
         @if($promoOffers->count() > 0 && !request('promo'))
         <section class="opl-promo-zone" aria-label="Offres promotionnelles">
 
-            {{-- HEADER --}}
             <div class="opl-promo-header">
                 <div class="opl-promo-eyebrow">Offres à durée limitée</div>
                 <h2 class="opl-promo-title">
@@ -381,107 +381,43 @@ $wishlistIds = Auth::check()
                 </p>
             </div>
 
-            @php
-                $featuredPromo = $promoOffers->first();
-                $otherPromos   = $promoOffers->skip(1);
-                $featuredDiscount = round((1 - $featuredPromo->promotional_price / $featuredPromo->base_price) * 100);
-            @endphp
-
-            {{-- OFFRE PHARE --}}
-            <div class="opl-promo-featured">
-                <a href="{{ route('offers.show', $featuredPromo->slug) }}" class="opl-promo-featured-img" tabindex="-1">
-                    @if($featuredPromo->cover_image)
-                        <img src="{{ asset('storage/'.$featuredPromo->cover_image) }}"
-                             alt="{{ $featuredPromo->title }}"
-                             loading="eager" width="800" height="500">
-                    @else
-                        @php $gr = $gradients[$featuredPromo->category] ?? ['#D4E8C8','#8BBF6E']; @endphp
-                        <div class="opl-promo-card-img-ph"
-                             style="background:linear-gradient(135deg,{{ $gr[0] }},{{ $gr[1] }});">
-                            {{ $emojis[$featuredPromo->category] ?? '✨' }}
-                        </div>
-                    @endif
-                    <div class="opl-promo-featured-overlay"></div>
-                    <div class="opl-promo-featured-badge">−{{ $featuredDiscount }}%</div>
-                    <div class="opl-promo-featured-content">
-                        <div class="opl-promo-featured-location">
-                            <i class="fas fa-map-marker-alt"></i>
-                            {{ $featuredPromo->city->name }} · {{ $featuredPromo->category_label }}
-                        </div>
-                        <h3 class="opl-promo-featured-title">{{ $featuredPromo->title }}</h3>
-                        @if($featuredPromo->short_description)
-                            <p class="opl-promo-featured-desc">
-                                {{ Str::limit($featuredPromo->short_description, 140) }}
-                            </p>
-                        @endif
-                        <div class="opl-promo-featured-price-row">
-                            <div>
-                                <span class="opl-promo-featured-old">
-                                    {{ number_format($featuredPromo->base_price, 0, '', ' ') }} FCFA
-                                </span>
-                                <span class="opl-promo-featured-new">
-                                    {{ number_format($featuredPromo->promotional_price, 0, '', ' ') }} FCFA
-                                </span>
-                            </div>
-                            <a href="{{ route('offers.show', $featuredPromo->slug) }}" class="opl-promo-featured-cta">
-                                Réserver <i class="fas fa-arrow-right"></i>
-                            </a>
-                        </div>
-                    </div>
-                </a>
-                @auth
-                <button class="opl-promo-wish-btn dt-wish-btn {{ in_array($featuredPromo->id, $wishlistIds) ? 'active' : '' }}"
-                        data-wishlist-id="{{ $featuredPromo->id }}"
-                        aria-label="Favoris">
-                    <i class="{{ in_array($featuredPromo->id, $wishlistIds) ? 'fas' : 'far' }} fa-heart"></i>
-                </button>
-                @endauth
-            </div>
-
-            {{-- CARROUSEL DES AUTRES PROMOS — scroll natif, sans dépendance --}}
-            @if($otherPromos->count() > 0)
-            <div class="opl-promo-carousel-wrap">
-                <div class="opl-mz-track" id="opl-mz-track">
-                    @foreach($otherPromos as $offer)
+            <div class="opl-mat-carousel-wrap">
+                <div class="carousel opl-mat-carousel">
+                    @foreach($promoOffers as $offer)
                     @php
-                        $rCount     = (int)($offer->reviews_count ?? 0);
-                        $hasReviews = $rCount >= 5;
+                        $discount = round((1 - $offer->promotional_price / $offer->base_price) * 100);
                         $wishlisted = in_array($offer->id, $wishlistIds);
-                        $discount   = round((1 - $offer->promotional_price / $offer->base_price) * 100);
                     @endphp
-                    <div class="opl-mz-card">
-                        <a href="{{ route('offers.show', $offer->slug) }}" class="opl-mz-img">
+                    <div class="carousel-item opl-mat-slide">
+                        <a href="{{ route('offers.show', $offer->slug) }}" class="opl-mat-img">
                             @if($offer->cover_image)
                                 <img src="{{ asset('storage/'.$offer->cover_image) }}"
                                      alt="{{ $offer->title }}"
-                                     loading="lazy" width="400" height="280">
+                                     loading="lazy">
                             @else
                                 @php $gr = $gradients[$offer->category] ?? ['#D4E8C8','#8BBF6E']; @endphp
-                                <div class="opl-mz-img-ph"
-                                     style="background:linear-gradient(135deg,{{ $gr[0] }},{{ $gr[1] }});">
+                                <div class="opl-mat-img-ph" style="background:linear-gradient(135deg,{{ $gr[0] }},{{ $gr[1] }});">
                                     {{ $emojis[$offer->category] ?? '✨' }}
                                 </div>
                             @endif
-                            <div class="opl-mz-badge">−{{ $discount }}%</div>
                         </a>
-                        <div class="opl-mz-body">
-                            <div class="opl-mz-location">
+                        <div class="opl-mat-badge">−{{ $discount }}%</div>
+                        <div class="opl-mat-body">
+                            <div class="opl-mat-location">
                                 <i class="fas fa-map-marker-alt"></i>
-                                {{ $offer->city->name }}
+                                {{ $offer->city->name }} · {{ $offer->category_label }}
                             </div>
-                            <h3 class="opl-mz-title">
-                                <a href="{{ route('offers.show', $offer->slug) }}">{{ $offer->title }}</a>
-                            </h3>
-                            <div class="opl-mz-price">
-                                <span class="opl-mz-old">{{ number_format($offer->base_price, 0, '', ' ') }}</span>
-                                <span class="opl-mz-new">{{ number_format($offer->promotional_price, 0, '', ' ') }} FCFA</span>
+                            <h3 class="opl-mat-title">{{ Str::limit($offer->title, 50) }}</h3>
+                            <div class="opl-mat-price">
+                                <span class="opl-mat-old">{{ number_format($offer->base_price, 0, '', ' ') }}</span>
+                                <span class="opl-mat-new">{{ number_format($offer->promotional_price, 0, '', ' ') }} FCFA</span>
                             </div>
-                            <a href="{{ route('offers.show', $offer->slug) }}" class="opl-mz-cta">
+                            <a href="{{ route('offers.show', $offer->slug) }}" class="opl-mat-cta">
                                 Voir l'offre <i class="fas fa-arrow-right"></i>
                             </a>
                         </div>
                         @auth
-                        <button class="opl-promo-wish-btn dt-wish-btn {{ $wishlisted ? 'active' : '' }}"
+                        <button class="opl-mat-wish dt-wish-btn {{ $wishlisted ? 'active' : '' }}"
                                 data-wishlist-id="{{ $offer->id }}"
                                 aria-label="Favoris">
                             <i class="{{ $wishlisted ? 'fas' : 'far' }} fa-heart"></i>
@@ -490,16 +426,9 @@ $wishlistIds = Auth::check()
                     </div>
                     @endforeach
                 </div>
-                <div class="opl-mz-nav">
-                    <button type="button" id="opl-mz-prev" aria-label="Précédent">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <button type="button" id="opl-mz-next" aria-label="Suivant">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
+                <button class="opl-mat-prev" id="opl-mat-prev" aria-label="Précédent">&#8249;</button>
+                <button class="opl-mat-next" id="opl-mat-next" aria-label="Suivant">&#8250;</button>
             </div>
-            @endif
 
         </section>
         @endif
@@ -861,27 +790,59 @@ $wishlistIds = Auth::check()
 @endsection
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    var track = document.getElementById('opl-mz-track');
-    if (track) {
-        var prevBtn = document.getElementById('opl-mz-prev');
-        var nextBtn = document.getElementById('opl-mz-next');
-        var scrollAmount = function () {
-            var card = track.querySelector('.opl-mz-card');
-            var gap = 16;
-            return card ? card.offsetWidth + gap : 260;
-        };
-        if (prevBtn) prevBtn.addEventListener('click', function () {
-            track.scrollBy({ left: -scrollAmount(), behavior: 'smooth' });
-        });
-        if (nextBtn) nextBtn.addEventListener('click', function () {
-            track.scrollBy({ left: scrollAmount(), behavior: 'smooth' });
-        });
-    }
-});
-</script>
-<script>
+/* ── Carrousel Promos Materialize ── */
+(function () {
+    var el = document.querySelector('.opl-mat-carousel');
+    if (!el) return;
+
+    var instance = M.Carousel.init(el, {
+        duration:   800,
+        dist:       -80,
+        shift:      5,
+        padding:    40,
+        numVisible: 3,
+        indicators: false,
+        noWrap:     false
+    });
+
+    // Autoplay lent — toutes les 3s
+    var autoplay = setInterval(function () {
+        instance.next();
+    }, 4500);
+
+    // Pause au clic, reprise après 5s
+    el.addEventListener('click', function () {
+        clearInterval(autoplay);
+        setTimeout(function () {
+            autoplay = setInterval(function () {
+                instance.next();
+            }, 3000);
+        }, 5000);
+    });
+
+    // Boutons prev/next
+    var btnPrev = document.getElementById('opl-mat-prev');
+    var btnNext = document.getElementById('opl-mat-next');
+    if (btnPrev) btnPrev.addEventListener('click', function (e) {
+        e.stopPropagation();
+        instance.prev();
+        clearInterval(autoplay);
+        setTimeout(function () {
+            autoplay = setInterval(function () { instance.next(); }, 3000);
+        }, 5000);
+    });
+    if (btnNext) btnNext.addEventListener('click', function (e) {
+        e.stopPropagation();
+        instance.next();
+        clearInterval(autoplay);
+        setTimeout(function () {
+            autoplay = setInterval(function () { instance.next(); }, 3000);
+        }, 5000);
+    });
+})();
+
 /* ── Compteur animé ── */
 (function () {
     const el = document.getElementById('opl-hero-counter');
